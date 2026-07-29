@@ -1,0 +1,2647 @@
+<!DOCTYPE html>
+<html lang="es-DO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grupos de pago · Banco Popular (Prototipo UX)</title>
+<!-- Inter (opcional). Si no hay conexión, cae al stack local sin romper nada. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Neo Sans = tipografía de marca (títulos, montos, CTA).
+     Inter    = tipografía de interfaz (cuerpo, etiquetas, campos).
+     Neo Sans es una fuente licenciada: si está instalada en el equipo se usa,
+     si no, el stack cae a Inter y luego a la del sistema. */
+  --font-display:'Neo Sans','Neo Sans Pro','NeoSansStd','Neo Sans Std','Neo Sans Medium',
+                 'Inter','Inter Variable',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --font-ui:'Inter','Inter Variable',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --orange:#ED8B00;
+  --orange-d:#C97600;
+  --orange-l:#FDF6EC;
+  --navy:#002E6D;
+  --navy-2:#0B3D91;
+  --ink:#3D4A5C;
+  --ink-2:#5A6879;
+  --muted:#8C96A3;
+  --line:#E6E8EB;
+  --line-2:#F1F2F4;
+  --chip:#E9F2FB;
+  --sel:#FDF8F1;
+  --field-focus:#FEFAF1;
+  --teal:#0F6F91;
+  --green:#0E7C5A;
+  --red:#C0392B;
+  --shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.04);
+  --shadow-2:0 8px 28px rgba(16,24,40,.14);
+  --r:12px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--font-ui);
+  font-feature-settings:"cv05" 1,"ss01" 1;
+  -webkit-font-smoothing:antialiased;
+  background:#EEF1F5;
+  color:var(--ink);
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px 16px;
+}
+button{font-family:inherit}
+input,textarea,select{font-family:var(--font-ui)}
+
+/* ===== Jerarquía tipográfica =====
+   Neo Sans para la voz de marca: títulos de pantalla, nombres, montos y CTA.
+   Inter para todo lo demás: cuerpo, etiquetas, campos y textos de apoyo. */
+h2.t, .section-title, .sec-nav, .success h2,
+.sheet h3,
+.totalcard .v, .amt, .chip, .receipt-k, .balrow .who .a, .accordion .l,
+.brandbar, .qrcard .qt, .info-line .v, .mrow .nm, .splitrow .val{
+  font-family:var(--font-display);
+}
+.success h2, .sheet h3{letter-spacing:-.015em}
+.chip{letter-spacing:.005em}
+
+/* ===== Marco de teléfono ===== */
+.stage{display:flex;flex-direction:column;align-items:center;gap:16px}
+.brandbar{display:flex;align-items:center;gap:10px;color:var(--navy);font-weight:800;font-size:14px;letter-spacing:.2px}
+.brandbar .dot{width:22px;height:22px;border-radius:6px;background:var(--orange);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+.brandbar small{font-weight:600;color:var(--muted);letter-spacing:0}
+.phone{
+  width:390px;height:844px;background:#fff;border-radius:46px;
+  box-shadow:0 0 0 11px #12161c,0 0 0 13px #2a3038,0 30px 60px rgba(0,0,0,.28);
+  position:relative;overflow:hidden;display:flex;flex-direction:column;
+}
+.statusbar{height:48px;flex:0 0 48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:15px;font-weight:800;color:#111}
+.statusbar .icons{display:flex;gap:5px;align-items:center;opacity:.9}
+.statusbar svg{display:block}
+.viewport{flex:1;position:relative;overflow:hidden}
+
+/* ===== Screen ===== */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:#fff}
+.screen.enter{animation:slideIn .26s cubic-bezier(.22,.61,.36,1)}
+.screen.enter-back{animation:slideBack .26s cubic-bezier(.22,.61,.36,1)}
+.screen.enter-up{animation:slideUp .28s cubic-bezier(.22,.61,.36,1)}
+@keyframes slideIn{from{transform:translateX(26px);opacity:0}to{transform:none;opacity:1}}
+@keyframes slideBack{from{transform:translateX(-22px);opacity:0}to{transform:none;opacity:1}}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+
+.nav{flex:0 0 auto;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:8px 16px 8px}
+/* Page header: Inter regular 16 */
+.nav h1{grid-column:2;text-align:center;margin:0;
+  font-family:var(--font-ui);font-size:16px;font-weight:400;color:var(--navy)}
+.nav button{background:none;border:0;padding:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--orange);border-radius:10px}
+.nav button:active{background:var(--orange-l)}
+.nav .right{grid-column:3;justify-self:end}
+.nav .with-dot{position:relative;overflow:visible}
+.dot-count{position:absolute;top:0;right:0;min-width:18px;height:18px;border-radius:9px;
+  background:var(--orange);color:#fff;border:2px solid #fff;padding:0 4px;
+  font-family:var(--font-ui);font-size:10px;font-weight:700;line-height:1;
+  display:flex;align-items:center;justify-content:center}
+
+.body{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 24px 24px;-webkit-overflow-scrolling:touch}
+.body::-webkit-scrollbar{width:0}
+.footer{flex:0 0 auto;padding:16px 24px 24px;background:#fff;border-top:1px solid transparent}
+.footer.bordered{border-top:1px solid var(--line-2)}
+
+/* ===== Tipografía ===== */
+/* Encabezados de sección: Neo Sans bold 16, separados 16 arriba y abajo */
+h2.t{font-size:16px;font-weight:700;color:var(--navy);margin:16px 0}
+/* Encabezado de pantalla de selección: Inter semibold 16 */
+h2.t.ui{font-family:var(--font-ui);font-size:16px;font-weight:600}
+.section-title{font-size:16px;font-weight:700;color:#37424F;margin:16px 0}
+p.sub{margin:0 0 16px;color:var(--ink-2);font-family:var(--font-ui);font-size:16px;font-weight:400;line-height:1.45}
+.sec-nav{font-size:16px;font-weight:700;color:var(--navy);margin:16px 0 0}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+.center{text-align:center}
+
+/* ===== Botones ===== */
+/* ===== Botones — medidas del Figma =====
+   Largo ............ 342 × 56  (ancho completo con los 24 de margen lateral)
+   Largo en pop-up .. 296 × 48  (ancho completo dentro del diálogo)
+   Mediano .......... 268 × 48  (.btn-md, centrado)
+   Par pequeño ...... 148 × 48  (.btn-sm)
+   Texto: Inter 16 bold */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;min-height:56px;padding:0 16px;border:0;border-radius:var(--r);
+  font-family:var(--font-ui);font-size:16px;font-weight:700;line-height:1.25;text-align:center;
+  cursor:pointer;transition:transform .08s,filter .15s}
+.sheet .btn,.dialog .btn{min-height:48px}
+.btn-md{width:268px;max-width:100%;min-height:48px;margin-left:auto;margin-right:auto}
+.btn-sm{width:148px;max-width:100%;min-height:48px}
+.btn-xs{width:auto;min-height:40px;padding:0 16px;font-size:14px;font-weight:700;border-radius:10px}
+.btn:active{transform:scale(.985)}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{filter:brightness(1.04)}
+.btn-primary[disabled],.btn[disabled]{background:#F1F2F4;color:#9AA3AE;cursor:not-allowed}
+.btn-soft{background:var(--chip);color:#2B3A4A}
+.btn-ghost{background:#fff;color:var(--navy);border:1.5px solid var(--line)}
+.btn-danger{background:#FDECEA;color:var(--red)}
+/* Separación solo entre botones apilados verticalmente.
+   Con ">" queda restringida a los botones sueltos del footer / hoja / diálogo,
+   así nunca afecta a filas horizontales (Restaurar-Aplicar, Rechazar-Aprobar),
+   donde el margen superior le restaría alto al segundo botón. */
+.footer>.btn+.btn,.sheet>.btn+.btn,.dialog>.btn+.btn{margin-top:8px}
+
+/* ===== Inputs ===== */
+/* 24 y no 16: el label flotante se come parte de la separación */
+.field{position:relative;margin-bottom:24px}
+/* Label flotante sobre el borde. Mismo tratamiento en campos de texto y en
+   los campos tipo "select" (fecha, categoría, frecuencia). */
+.field .lab,.select-like .lab{position:absolute;top:-7px;left:8px;background:#fff;padding:0 8px;
+  font-family:var(--font-ui);font-size:12px;font-weight:400;color:#3D4558;
+  line-height:16px;pointer-events:none}
+.field:focus-within .lab,.select-like:focus-within .lab{background:var(--field-focus)}
+/* Campo de texto: 48 de alto. El botón de emoji lo acompaña en 48x48. */
+.inp{width:100%;height:48px;border:1.5px solid var(--line);border-radius:var(--r);padding:0 16px;
+  font-size:16.5px;color:#37424F;background:#fff;outline:none;font-family:inherit}
+textarea.inp{height:auto;min-height:96px;padding:16px}
+.inp::placeholder{color:#A9B1BB}
+/* Estado de foco de cualquier campo de texto */
+.inp:focus,.splitmini:focus{border-color:var(--orange);background:var(--field-focus)}
+.select-like:focus-visible{border-color:var(--orange);background:var(--field-focus);outline:none}
+
+/* Campo de monto: el "RD$" es fijo y el usuario escribe después */
+.field.money .prefix{position:absolute;left:16px;top:50%;transform:translateY(-50%);
+  font-size:16.5px;color:#37424F;pointer-events:none}
+.field.money .inp{padding-left:56px}
+
+/* Participantes: mismo campo que "Tu nombre" al unirse, pero sin label */
+.prow{display:flex;align-items:center;gap:8px;width:100%;height:48px;background:#fff;
+  border:1.5px solid var(--line);border-radius:var(--r);padding:0 16px;margin-bottom:16px;
+  transition:border-color .15s,background .15s}
+.prow:focus-within{border-color:var(--orange);background:var(--field-focus)}
+.pinput{flex:1;min-width:0;border:0;background:none;outline:none;padding:0;
+  font-family:var(--font-ui);font-size:16.5px;color:#37424F}
+.pinput::placeholder{color:#A9B1BB}
+.prow .rm{flex:0 0 auto;background:none;border:0;padding:0;color:var(--navy);cursor:pointer;display:flex}
+.addrow{display:flex;align-items:center;width:100%;height:48px;text-align:left;background:#fff;cursor:pointer;
+  border:1.5px solid var(--line);border-radius:var(--r);padding:0 16px;
+  font-family:var(--font-ui);font-size:16px;font-weight:500;color:var(--navy)}
+.addrow:active{background:#FAFBFC}
+.row{display:flex;align-items:flex-start;gap:16px;margin-bottom:24px}
+.row>*{flex:1 1 0;min-width:0;width:auto}
+/* Par de campos exactamente iguales: las pistas de grid no las estira el contenido */
+.row.eq{display:grid;grid-template-columns:1fr 1fr;align-items:start}
+.row.eq>*{width:auto;min-width:0}
+.emoji-btn{flex:0 0 48px;width:48px;height:48px;color:var(--orange);border:1.5px solid var(--line);border-radius:var(--r);
+  background:#fff;font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.emoji-btn:active{border-color:var(--orange)}
+/* Campo tipo "select": se comporta igual que un campo de texto con label flotante */
+.select-like{width:100%;height:48px;border:1.5px solid var(--line);border-radius:var(--r);background:#fff;
+  padding:0 16px;text-align:left;cursor:pointer;position:relative;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  font-family:var(--font-ui);font-size:16.5px;color:#37424F;font-weight:400}
+.select-like>span:not(.lab){min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.select-like .ph{color:#A9B1BB}
+.select-like[disabled]{background:#F7F8FA;color:#8C96A3;cursor:default}
+.select-like[disabled] .lab{background:#F7F8FA;color:var(--muted)}
+.select-like svg{color:var(--orange);flex:0 0 auto}
+
+/* ===== Cards ===== */
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+.card-btn{width:100%;text-align:left;cursor:pointer;display:flex;align-items:center;gap:16px;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 16px;margin-bottom:16px}
+.card-btn:active{background:#FAFBFC}
+.card-btn>span{min-width:0}
+.card-btn .ttl{display:block;font-family:var(--font-ui);font-size:16px;font-weight:500;color:var(--navy);line-height:1.3}
+.card-btn .txt{display:block;font-family:var(--font-ui);font-size:14px;font-weight:400;color:var(--ink-2);margin-top:4px;line-height:1.35}
+.card-btn.plain .ttl{color:#37424F}
+.chev{color:var(--orange);flex:0 0 auto}
+
+.tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+/* El icono arriba y la etiqueta pegada al fondo: así las de una y dos líneas
+   quedan alineadas por abajo. */
+.tile{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+  padding:16px 8px;cursor:pointer;text-align:left;min-height:100px;
+  display:flex;flex-direction:column;justify-content:space-between;gap:16px}
+.tile:active{background:#FAFBFC}
+.tile .ic{color:var(--orange);display:flex}
+.tile .ic svg{display:block;width:28px;height:28px}
+.tile .lbl{font-family:var(--font-ui);font-size:13px;font-weight:500;color:#37424F;line-height:1.25}
+
+.accordion{border-bottom:1px solid var(--line);padding:16px 4px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:none;width:100%;border-left:0;border-right:0;border-top:0}
+.accordion .l{font-size:16px;font-weight:700;color:var(--navy)}
+.accordion .r{display:flex;align-items:center;gap:8px}
+/* En cero el contador va en durazno; con contenido pasa a naranja */
+.badge{min-width:26px;height:26px;border-radius:13px;background:#F7D2AB;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;padding:0 8px}
+.badge.on{background:var(--orange);color:#fff}
+.badge.navy{background:var(--navy);color:#fff}
+/* Acordeón: el panel siempre está en el DOM y se anima con grid-template-rows,
+   que sí es interpolable (a diferencia de height:auto). */
+.accordion .arrow{display:flex;transition:transform .32s cubic-bezier(.4,0,.2,1)}
+.accordion.open .arrow{transform:rotate(180deg)}
+.acc-panel{display:grid;grid-template-rows:0fr;opacity:0;
+  transition:grid-template-rows .32s cubic-bezier(.4,0,.2,1), opacity .2s ease}
+/* El overflow es necesario para animar el alto, pero recortaba la sombra
+   de las tarjetas: se le da aire lateral y se compensa con margen negativo. */
+.acc-panel>.inner{overflow:hidden;min-height:0;margin:0 -16px;padding:0 16px 8px}
+.acc-panel.open{grid-template-rows:1fr;opacity:1}
+@media (prefers-reduced-motion:reduce){
+  .acc-panel,.accordion .arrow{transition:none}
+}
+
+/* Lista de grupos */
+.glist{padding:16px 0 8px;display:flex;flex-direction:column;gap:16px}
+.gcard{display:flex;align-items:center;gap:16px;width:100%;height:82px;text-align:left;cursor:pointer;
+  background:#fff;border:0;border-radius:14px;box-shadow:0 2px 10px rgba(16,24,40,.09);padding:0 16px}
+.gcard:active{background:#FAFBFC}
+.gcard .avatar{flex:0 0 50px;width:50px;height:50px;border-radius:25px;font-size:25px;line-height:1}
+.gcard .info{flex:1;min-width:0}
+.gcard .nm{display:block;font-family:var(--font-ui);font-size:20px;font-weight:500;color:#3B4559;line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcard .mt{display:block;font-size:15px;color:#7A8593;margin-top:4px}
+.avatar{flex:0 0 42px;height:42px;border-radius:21px;background:var(--orange-l);display:flex;align-items:center;justify-content:center;font-size:20px}
+/* El monto siempre en el mismo color: lo que distingue es el signo */
+.amt{font-size:15px;font-weight:800;color:#3D4558;white-space:nowrap}
+.amt.pos,.amt.neg,.amt.zero{color:#3D4558}
+
+/* Chips */
+.type-chip{text-align:center;margin:16px 0 24px}   /* +8 del padding del body = 24 */
+.chip{display:inline-block;background:var(--chip);color:var(--navy);border-radius:20px;padding:8px 16px;font-size:14px;font-weight:600}
+.pill{display:inline-block;border-radius:20px;padding:4px 8px;font-size:11.5px;font-weight:800;letter-spacing:.2px}
+.pill.paid{background:#E6F5EF;color:var(--green)}
+.pill.due{background:#FDECEA;color:var(--red)}
+.pill.pend{background:#FDF3E3;color:#8A5B10}
+
+/* Group hero */
+.hero{text-align:center;padding:8px 0 4px}
+.hero .em{width:64px;height:64px;border-radius:32px;background:var(--orange-l);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 8px}
+/* Nombre del grupo en su pantalla: Inter medium 24 */
+.hero h2{margin:0 0 8px;font-family:var(--font-ui);font-size:24px;font-weight:500;
+  color:#37424F;letter-spacing:-.01em}
+
+.tabs{display:flex;border-bottom:1px solid var(--line);margin:16px -24px 0;padding:0 24px}
+.tabs button{flex:1;background:none;border:0;padding:16px 0 8px;font-size:16px;font-weight:700;color:var(--navy);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--orange);border-bottom-color:var(--orange)}
+
+.empty{text-align:center;color:var(--ink-2);font-size:15px;padding:56px 16px}
+
+/* Filas de miembros/split */
+.splitbox{border:1.5px solid var(--orange);border-radius:var(--r);overflow:hidden;background:var(--sel)}
+.splitrow{display:flex;align-items:center;gap:16px;padding:16px;border-bottom:1px solid #F0E4D2;
+  cursor:pointer;user-select:none;transition:background .12s}
+.splitrow:active{background:#FBF2E4}
+.splitrow:last-child{border-bottom:0}
+.splitrow .nm{flex:1;font-size:16px;color:#37424F}
+.splitrow .val{font-size:16px;color:#37424F;font-weight:600}
+.cb{width:26px;height:26px;border-radius:6px;border:2px solid #C9CFD6;background:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 26px}
+.cb.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.splitmini.auto{color:var(--muted)}
+.splitnote{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  margin-top:8px;font-size:12.5px;color:var(--muted);line-height:1.4}
+.splitmini{width:96px;border:1px solid var(--line);border-radius:8px;padding:8px;text-align:right;font-size:14.5px;font-family:inherit}
+
+.mrow{display:flex;align-items:center;gap:16px;padding:16px 16px;border:1px solid var(--line);border-radius:var(--r);margin-bottom:16px;background:#fff;box-shadow:var(--shadow)}
+.mrow .nm{flex:1;font-size:16px;color:#37424F}
+.mrow .nm b{display:block;font-family:var(--font-display);font-size:12px;font-weight:400;color:#012169;text-transform:uppercase;letter-spacing:.3px}
+.tag-you{background:var(--orange);color:#fff;border-radius:14px;padding:6px;
+  font-family:var(--font-ui);font-size:12px;font-weight:600;line-height:1}
+.tag-own{background:var(--orange);color:#fff;border-radius:16px;padding:8px 16px;font-size:14px;font-weight:700;white-space:nowrap}
+
+.balrow{display:flex;align-items:center;gap:16px;padding:16px;border:1px solid var(--line);border-radius:var(--r);margin-bottom:16px;background:#fff;box-shadow:var(--shadow)}
+.balrow .who{flex:1;min-width:0}
+.balrow .who .a{display:block;font-size:15px;font-weight:800;color:var(--navy);text-transform:uppercase}
+.balrow .who .b{display:block;font-family:var(--font-display);font-size:12px;font-weight:400;color:#012169;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* El SVG de avatar ya incluye su fondo y su borde */
+.ava-ic{flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center}
+.ava-ic svg{display:block;width:40px;height:40px}
+
+.totalcard{border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;text-align:center;margin-bottom:8px}
+.totalcard .k{font-family:var(--font-display);font-size:16px;font-weight:500;color:#012169}
+/* Balance del card de monto: Neo Sans Std Regular 32 */
+.totalcard .v{font-family:var(--font-display);font-size:32px;font-weight:400;color:#555555;
+  margin-top:8px;letter-spacing:normal}
+.totalcard .n{font-size:13px;color:var(--muted);margin-top:4px}
+.totalcard.tap{display:block;width:100%;cursor:pointer;background:#fff;transition:background .15s}
+.totalcard.tap:active{background:#FAFBFC}
+.totalcard.tap .k,.totalcard.tap .v{display:block}
+.totalcard.tap .go{display:inline-flex;align-items:center;gap:8px;margin-top:8px;
+  font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--orange)}
+
+/* El icono siempre centrado respecto al texto del aviso */
+.notice{display:flex;align-items:center;gap:16px;background:#FFFAF1;border-radius:var(--r);padding:16px;font-size:13.5px;color:#3B4559;line-height:1.45;margin-bottom:16px}
+.notice svg{flex:0 0 auto;color:#ED8B00}
+.info-line{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--line-2);font-size:15px}
+.info-line:last-child{border-bottom:0}
+.info-line .k{color:var(--ink-2)}
+.info-line .v{color:#37424F;font-weight:700;text-align:right}
+
+.acct{width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;margin-bottom:16px}
+.acct .n{display:block;font-family:var(--font-ui);font-size:16px;font-weight:500;color:#37424F}
+.acct .d{display:block;font-family:var(--font-ui);font-size:14px;font-weight:400;color:var(--muted);margin-top:4px;line-height:1.5}
+.acct.sel{background:#F5F6F8;border-color:#D9DEE4}
+/* Lista de selección de cuenta: filas planas, sin borde ni radio.
+   La cuenta activa se marca con un bloque gris claro. */
+.acctlist{margin-top:24px}
+.acct-row{display:block;width:100%;text-align:left;cursor:pointer;
+  background:none;border:0;box-shadow:none;border-radius:8px;padding:16px;margin-bottom:16px}
+.acct-row:last-child{margin-bottom:0}
+.acct-row .n{display:block;font-family:var(--font-ui);font-size:16px;font-weight:500;color:#37424F;line-height:1.25}
+.acct-row .d{display:block;font-family:var(--font-ui);font-size:14px;font-weight:400;color:#7A8593;margin-top:4px;line-height:1.5}
+.acct-row.sel{background:#F7F8FA}
+.acct-row:not(.sel):active{background:#FBFCFD}
+
+.optrow{width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;margin-bottom:16px;box-shadow:var(--shadow)}
+.optrow .n{font-size:16px;color:#37424F;font-weight:600}
+.radio{width:22px;height:22px;border-radius:11px;border:2px solid #C9CFD6;flex:0 0 22px;display:flex;align-items:center;justify-content:center}
+.radio.on{border-color:var(--orange)}
+.radio.on i{width:12px;height:12px;border-radius:6px;background:var(--orange);display:block}
+.switch{width:48px;height:28px;border-radius:14px;background:#D5DAE0;position:relative;cursor:pointer;flex:0 0 48px;transition:background .18s;border:0}
+.switch i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:11px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .18s;display:block}
+.switch.on{background:var(--orange)}
+.switch.on i{left:23px}
+
+/* Éxito */
+.success{position:relative;text-align:center;padding-top:16px}
+.success h2{font-family:var(--font-ui);font-size:24px;font-weight:500;color:var(--navy);
+  line-height:1.3;letter-spacing:-.01em;margin:8px 16px 24px}
+/* Ilustración de check: 82x82 */
+.tick{width:82px;height:82px;border-radius:41px;border:3px solid var(--teal);display:flex;
+  align-items:center;justify-content:center;margin:0 auto 24px;color:var(--teal);
+  animation:pop .4s cubic-bezier(.2,1.2,.4,1)}
+
+/* ===== Confetti ===== */
+/* Cae por detrás del contenido: el confetti se queda en la capa 0
+   y la cabecera, el cuerpo y el footer suben a la capa 1. */
+.confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.screen>.nav,.screen>.body,.screen>.footer{position:relative;z-index:1}
+.confetti b{position:absolute;top:-24px;display:block;opacity:0;
+  animation-name:confettiFall;animation-timing-function:cubic-bezier(.35,.15,.6,1);
+  animation-fill-mode:forwards;will-change:transform,opacity}
+@keyframes confettiFall{
+  0%  {transform:translate3d(0,0,0) rotate(0deg);opacity:0}
+  6%  {opacity:1}
+  78% {opacity:1}
+  100%{transform:translate3d(var(--dx),var(--dist),0) rotate(var(--rot));opacity:0}
+}
+@media (prefers-reduced-motion:reduce){.confetti{display:none}}
+
+.qrcard{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px 16px;text-align:center}
+.qrcard .lead{font-size:14.5px;color:var(--ink-2);line-height:1.4}
+.qrcard .qt{font-size:17px;font-weight:800;color:var(--navy);margin:16px 0 16px}
+.qr{width:170px;height:170px;margin:0 auto 16px;display:grid;background:#fff;padding:8px}
+.qr span{background:#111}
+.qr span.o{background:transparent}
+
+/* ===== Escáner QR (cámara simulada) ===== */
+.screen[data-scan]{background:#0E1216}
+.scan-feed{position:absolute;inset:0;overflow:hidden}
+.scan-feed .scene{position:absolute;inset:-8%;
+  background:radial-gradient(120% 90% at 28% 18%,#46525F 0%,#2B343D 42%,#141A20 100%);
+  animation:feedDrift 9s ease-in-out infinite alternate}
+.scan-feed .blob{position:absolute;border-radius:40px;filter:blur(18px);opacity:.5}
+.scan-feed .grain{position:absolute;inset:0;opacity:.16;
+  background-image:radial-gradient(#fff 1px,transparent 1px);background-size:3px 3px;
+  animation:grain .6s steps(2) infinite}
+@keyframes feedDrift{from{transform:scale(1.04) translate(-8px,-4px)}to{transform:scale(1.1) translate(8px,8px)}}
+@keyframes grain{from{transform:translate(0,0)}to{transform:translate(-1px,1px)}}
+/* Cartelito con el QR que "entra" al encuadre */
+.scan-target{position:absolute;left:50%;top:50%;width:160px;
+  transform:translate(-50%,-50%) rotate(-7deg) scale(.72);
+  background:#fff;border-radius:8px;padding:8px;box-shadow:0 16px 40px rgba(0,0,0,.5);
+  animation:targetIn 2.2s cubic-bezier(.3,.8,.4,1) forwards}
+@keyframes targetIn{
+  0%{transform:translate(-32%,-64%) rotate(-14deg) scale(.5);opacity:.75}
+  100%{transform:translate(-50%,-50%) rotate(0deg) scale(1);opacity:1}}
+.scan-frame{position:absolute;left:50%;top:50%;width:240px;height:240px;
+  transform:translate(-50%,-50%);border-radius:24px;
+  box-shadow:0 0 0 9999px rgba(10,14,18,.66);transition:box-shadow .3s}
+.scan-frame b{position:absolute;width:40px;height:40px;border:4px solid var(--orange);transition:border-color .3s}
+.scan-frame b:nth-child(1){top:0;left:0;border-right:0;border-bottom:0;border-radius:16px 0 0 0}
+.scan-frame b:nth-child(2){top:0;right:0;border-left:0;border-bottom:0;border-radius:0 16px 0 0}
+.scan-frame b:nth-child(3){bottom:0;left:0;border-right:0;border-top:0;border-radius:0 0 0 16px}
+.scan-frame b:nth-child(4){bottom:0;right:0;border-left:0;border-top:0;border-radius:0 0 16px 0}
+.scan-frame i{position:absolute;left:8px;right:8px;height:3px;border-radius:2px;
+  background:linear-gradient(90deg,transparent,var(--orange),transparent);
+  box-shadow:0 0 16px rgba(232,137,11,.8);animation:scanSweep 2.2s ease-in-out infinite}
+@keyframes scanSweep{0%,100%{top:8px}50%{top:229px}}
+.screen[data-scan="ok"] .scan-frame b{border-color:#22C55E}
+.screen[data-scan="ok"] .scan-frame{box-shadow:0 0 0 9999px rgba(10,14,18,.78)}
+.scan-ok{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:80px;height:80px;border-radius:40px;background:#22C55E;color:#fff;
+  display:flex;align-items:center;justify-content:center;animation:pop .3s cubic-bezier(.2,1.2,.4,1);
+  box-shadow:0 8px 32px rgba(34,197,94,.5)}
+.scan-nav{position:relative;z-index:2}
+.scan-nav h1{color:#fff}
+.scan-nav button{color:#fff}
+.scan-nav button:active{background:rgba(255,255,255,.16)}
+.scan-hint{position:absolute;left:24px;right:24px;top:calc(50% + 160px);z-index:2;text-align:center;
+  color:#fff;font-size:16px;font-weight:600;line-height:1.4;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.scan-hint span{display:block;margin-top:8px;font-size:13.5px;font-weight:400;opacity:.75}
+.scan-actions{position:absolute;left:24px;right:24px;bottom:24px;z-index:2}
+.scan-actions .btn-glass{background:rgba(255,255,255,.16);color:#fff;backdrop-filter:blur(8px)}
+
+/* ===== Administradores ===== */
+.searchbox{position:relative;margin-bottom:24px}
+.searchbox .ic{position:absolute;left:16px;top:50%;transform:translateY(-50%);
+  color:var(--navy);display:flex;pointer-events:none}
+.searchbox .inp{padding-left:48px}
+.personcard{display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:#fff;
+  border:0;border-radius:12px;box-shadow:0 2px 10px rgba(16,24,40,.10);padding:16px;margin-bottom:16px}
+button.personcard{cursor:pointer}
+button.personcard:active{background:#FAFBFC}
+.personcard .who{flex:1;min-width:0}
+.personcard .a{display:block;font-family:var(--font-display);font-size:18px;font-weight:800;
+  color:var(--navy);text-transform:uppercase;line-height:1.2}
+.personcard .b{display:block;font-family:var(--font-display);font-size:12px;font-weight:400;color:#012169;
+  margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ===== Pago externo ===== */
+.balrow.tap{cursor:pointer;width:100%;text-align:left}
+.balrow.tap:active{background:#FAFBFC}
+.optsheet-title{text-align:center;font-family:var(--font-ui);font-size:16px;font-weight:600;
+  color:var(--navy);margin:0 0 24px}
+.optitem{display:flex;align-items:center;gap:16px;width:100%;background:none;border:0;
+  padding:8px 0;cursor:pointer;text-align:left}
+.optitem .ic{flex:0 0 56px;height:56px;border-radius:12px;background:var(--chip);
+  display:flex;align-items:center;justify-content:center;color:var(--navy)}
+.optitem .ic svg{width:32px;height:32px}
+.optitem .t{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--navy)}
+.optitem:active{opacity:.7}
+.membercard{display:flex;align-items:center;gap:16px;background:#fff;border-radius:12px;
+  box-shadow:0 2px 10px rgba(16,24,40,.12);padding:16px;text-align:left}
+.membercard .nm{flex:1;min-width:0;font-family:var(--font-display);font-size:18px;font-weight:800;
+  color:var(--navy);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.membercard .amt{font-family:var(--font-display);font-size:18px;font-weight:800;color:#3D4558}
+.counter{text-align:right;font-size:13px;color:var(--muted);margin-top:8px}
+.extok{text-align:center;padding-top:56px}
+.extok .msg{font-family:var(--font-ui);font-size:19px;font-weight:400;color:#3D4A5C;margin:24px 0}
+.extok .method{font-size:16px;color:#7A8593;margin-top:16px}
+
+/* ===== Unirte a un grupo ===== */
+.pickrow{display:flex;align-items:center;gap:16px;width:100%;text-align:left;cursor:pointer;
+  background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;
+  transition:border-color .15s,background .15s}
+.pickrow.on{border-color:var(--orange);background:var(--field-focus)}
+.pickrow .rad{flex:0 0 28px;height:28px;border-radius:14px;border:2px solid var(--orange);
+  display:flex;align-items:center;justify-content:center}
+.pickrow.on .rad i{display:block;width:16px;height:16px;border-radius:8px;background:var(--orange)}
+.pickrow .nm{min-width:0;font-size:16.5px;color:#37424F}
+.nolink{display:block;width:100%;background:none;border:0;cursor:pointer;text-align:center;
+  font-family:var(--font-ui);font-size:16px;font-weight:700;color:var(--orange);
+  padding:16px 0;margin-bottom:8px}
+.infobox{display:flex;align-items:center;gap:16px;background:#D8ECFD;border-radius:12px;padding:16px;
+  font-size:16px;color:#3B4559;line-height:1.45}
+.infobox svg{flex:0 0 auto;color:#00709E}
+.join-head{display:flex;align-items:center;justify-content:center;gap:16px;margin:16px 0}
+.join-em{flex:0 0 48px;width:48px;height:48px;border-radius:24px;background:var(--orange-l);
+  display:flex;align-items:center;justify-content:center;font-size:24px}
+.join-head h2{margin:0;font-family:var(--font-ui);font-size:24px;font-weight:500;
+  color:#3D4A5C;letter-spacing:-.01em}
+.ownercard{display:flex;align-items:center;gap:16px;background:#fff;border-radius:12px;
+  box-shadow:0 2px 10px rgba(16,24,40,.10);padding:16px}
+.ownercard .nm{min-width:0;font-family:var(--font-display);font-size:16px;font-weight:800;
+  color:var(--navy);text-transform:uppercase;line-height:1.25}
+.field .clear{position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  background:none;border:0;padding:0;color:var(--navy);cursor:pointer;display:flex}
+.inp.has-clear{padding-right:48px}
+
+/* Lista de gastos incluidos al pagar el balance total */
+.paylist{background:#fff;border:1px solid var(--line);border-radius:12px;
+  box-shadow:var(--shadow);padding:0 16px}
+.prow-pay{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:16px 0;border-bottom:1px solid var(--line-2)}
+.prow-pay:last-child{border-bottom:0}
+.prow-pay .t{min-width:0}
+.prow-pay .t b{display:block;font-size:16px;font-weight:600;color:#37424F;line-height:1.25}
+.prow-pay .t i{display:block;font-style:normal;font-size:13px;color:var(--muted);margin-top:4px}
+.prow-pay .m{font-family:var(--font-display);font-size:16px;font-weight:700;color:#37424F;white-space:nowrap}
+.paytotal{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  margin-top:16px;padding:16px;background:var(--sel);border:1px solid #F0E0C6;border-radius:12px}
+.paytotal .k{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--navy)}
+.paytotal .v{font-family:var(--font-display);font-size:20px;font-weight:700;color:#37424F}
+
+/* ===== Pantallas de pago (verificación y comprobante) ===== */
+.screen[data-pay]{background:linear-gradient(180deg,
+  #062E6B 0%, #0A4488 14%, #1A5EA0 26%, #4B84B8 37%, #A8C4DC 47%, #E8EEF4 56%, #fff 64%)}
+.screen[data-pay] .nav h1{color:#fff}
+.screen[data-pay] .nav button{color:#fff}
+.screen[data-pay] .nav button:active{background:rgba(255,255,255,.16)}
+.screen[data-pay] .footer{background:transparent}
+.pay-actions{margin-top:32px;padding-bottom:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Carga de la transacción: overlay oscuro + cuadro blanco con loader gris */
+.loader-scrim{position:absolute;inset:0;background:rgba(24,28,34,.42);
+  display:flex;align-items:center;justify-content:center;z-index:50;animation:fade .2s}
+.loader-box{width:112px;height:112px;border-radius:20px;background:#fff;
+  display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-2)}
+.loader{width:44px;height:44px;border-radius:50%;border:4px solid #E9ECEF;
+  border-top-color:#9AA3AE;animation:spin .8s linear infinite}
+@media (prefers-reduced-motion:reduce){.loader{animation-duration:2.4s}}
+.paycard{background:#fff;border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(6,26,60,.14)}
+.pay-ic{display:flex;justify-content:center;margin-bottom:8px}
+.pay-kicker{text-align:center;font-family:var(--font-ui);font-size:13px;font-weight:600;
+  letter-spacing:1.6px;color:var(--navy)}
+.pay-amount{text-align:center;font-family:var(--font-display);font-size:40px;font-weight:400;
+  color:#4A5563;margin:8px 0 0;letter-spacing:normal}
+.pay-pill{display:block;width:fit-content;max-width:100%;margin:16px auto 0;background:#FDF0DC;
+  color:var(--navy);border-radius:24px;padding:16px 24px;font-size:16px;text-align:center;line-height:1.25}
+.pay-rows{margin-top:24px}
+.payrow{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+  padding:16px 0;border-bottom:1px solid #E9ECEF}
+.payrow .k{font-size:16px;color:#37424F;font-weight:500;white-space:nowrap}
+.payrow .v{font-size:16px;color:#7A8593;text-align:right;line-height:1.5}
+
+/* Modales */
+/* Los pop-ups flotan: el scrim aporta el margen para que no toquen los bordes */
+.scrim{position:absolute;inset:0;background:rgba(24,28,34,.42);display:flex;align-items:flex-end;
+  justify-content:center;z-index:40;animation:fade .2s;padding:24px}
+.scrim.center{align-items:center}
+.scrim.no-anim,.scrim.no-anim .sheet,.scrim.no-anim .dialog{animation:none}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.sheet{width:100%;background:#fff;border-radius:24px;padding:16px 24px 24px;box-shadow:var(--shadow-2);
+  animation:up .26s cubic-bezier(.22,.61,.36,1);max-height:100%;overflow-y:auto}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.dialog{width:100%;background:#fff;border-radius:24px;padding:24px;box-shadow:var(--shadow-2);
+  animation:pop .22s cubic-bezier(.2,1.1,.4,1);max-height:100%;overflow-y:auto;text-align:center}
+.sheet h3{margin:0 0 8px;font-size:21px;font-weight:800;color:#37424F}
+/* Título de pop-up: Inter Medium 24 */
+.dialog h3{margin:0 0 16px;font-family:var(--font-ui);font-size:24px;font-weight:500;
+  color:#3B4559;line-height:1.25;letter-spacing:-.01em}
+.dialog p{margin:0 0 16px;font-size:16px;color:var(--ink-2);line-height:1.45}
+.dialog .qt{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--navy);margin:24px 0 16px}
+.dialog .dlg-note{font-size:13px;color:var(--muted);line-height:1.45;margin-top:16px}
+.dialog .qr{margin-bottom:24px}
+/* Tarjeta de la persona dentro de un diálogo de confirmación */
+.reqcard{display:flex;align-items:center;gap:16px;text-align:left;background:#fff;border-radius:12px;
+  box-shadow:0 2px 10px rgba(16,24,40,.12);padding:16px;margin-bottom:24px}
+.reqcard .who{min-width:0}
+.reqcard .who .a{display:block;font-family:var(--font-display);font-size:19px;font-weight:800;
+  color:var(--navy);text-transform:uppercase;line-height:1.15}
+.reqcard .who .b{display:block;font-family:var(--font-display);font-size:12px;font-weight:400;color:#012169;margin-top:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grab{width:44px;height:5px;border-radius:3px;background:#DFE3E8;margin:0 auto 16px}
+.dialog .ic-lg{width:96px;height:96px;border-radius:48px;background:#F3F5F7;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;color:var(--navy)}
+.opt-list button{width:100%;display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 16px;margin-bottom:8px;cursor:pointer;text-align:left;font-size:16px;color:#37424F;font-weight:600}
+.opt-list button:active{background:#FAFBFC}
+.opt-list .ic{color:var(--orange);flex:0 0 auto}
+/* ===== Calendario ===== */
+.cal-head{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:24px}
+/* Especificidad mayor que ".sheet h3", que si no impone Neo Sans 21 bold */
+.sheet h3.cal-title{margin:0;font-family:var(--font-ui);font-size:16px;font-weight:400;
+  color:var(--navy);text-align:center;letter-spacing:0}
+.cal-close{position:absolute;right:0;top:50%;transform:translateY(-50%);
+  background:none;border:0;padding:8px;color:var(--orange);cursor:pointer;display:flex;border-radius:8px}
+.cal-close:active{background:var(--orange-l)}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.cal-nav b{font-family:var(--font-display);font-size:20px;font-weight:700;color:#3D4A5C}
+.cal-nav button{background:none;border:0;padding:8px 16px;color:var(--orange);cursor:pointer;display:flex;border-radius:8px}
+.cal-nav button:active{background:var(--orange-l)}
+.cal-dow,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.cal-dow{margin-bottom:8px}
+.cal-dow span{font-family:var(--font-display);font-size:16px;font-weight:700;color:#3D4A5C;text-align:center}
+.cal-grid button{height:44px;border:0;background:none;border-radius:8px;cursor:pointer;
+  font-family:var(--font-ui);font-size:17px;font-weight:400;color:#3D4A5C;
+  display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s}
+.cal-grid button.out{color:#C6CCD3;cursor:default}
+.cal-grid button.hoy{box-shadow:inset 0 0 0 1.5px var(--orange);color:var(--orange);font-weight:600}
+.cal-grid button.on{background:var(--orange);color:#fff;font-weight:600;box-shadow:none}
+.cal-grid button:not(.out):not(.on):hover{background:#F3F5F7}
+.cal-actions{display:flex;gap:16px;margin-top:24px}
+.cal-actions .btn{flex:1 1 0;width:auto;max-width:none;min-height:56px;margin-top:0}
+
+.emoji-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.emoji-grid button{background:#F7F8FA;border:0;border-radius:10px;padding:8px 0;font-size:24px;cursor:pointer}
+/* Lista compacta: filas de 48 sin borde ni separación, como un desplegable */
+.cat-grid button{display:flex;align-items:center;gap:16px;width:100%;height:48px;
+  background:none;border:0;border-radius:8px;padding:0 8px;margin:0;
+  font-size:16px;color:var(--navy);cursor:pointer;text-align:left}
+.cat-grid button:active{background:#F7F8FA}
+.receipt-k{font-size:12px;font-weight:800;letter-spacing:1.4px;color:var(--navy);text-align:center}
+.toast{position:absolute;left:24px;right:24px;bottom:24px;background:#2A3340;color:#fff;padding:16px 16px;border-radius:12px;font-size:14px;z-index:60;box-shadow:var(--shadow-2);animation:up .2s}
+.hr{height:1px;background:var(--line-2);margin:16px 0}
+.linkbox{display:flex;align-items:center;gap:8px;background:#F5F6F8;border-radius:10px;padding:16px 16px;font-size:13px;color:var(--ink-2);word-break:break-all;margin-bottom:8px}
+.locked{text-align:center;padding:32px 16px}
+.locked .ic{width:76px;height:76px;border-radius:38px;background:#FDF3E3;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--orange)}
+.note-req{background:var(--sel);border:1px solid #F0E0C6;border-radius:var(--r);padding:16px;margin-bottom:16px}
+.note-req .q{font-size:15px;color:#37424F;line-height:1.45;margin-bottom:16px}
+.note-req .acts{display:flex;align-items:stretch;justify-content:center;gap:8px}
+.note-req .acts button{flex:1 1 148px;max-width:148px;min-width:0;margin-top:0;white-space:nowrap}
+.hint{font-size:12.5px;color:var(--muted);margin-top:-8px;margin-bottom:16px;line-height:1.4}
+.expcard{width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;display:flex;align-items:center;gap:16px;margin-bottom:16px;cursor:pointer}
+.expcard:has(.r){align-items:stretch}
+.expcard .info{flex:1;min-width:0}
+/* El icono a 32 y siempre centrado, para dejarle sitio al nombre */
+.expcard .avatar{flex:0 0 32px;width:32px;height:32px;border-radius:16px;font-size:16px;align-self:center}
+.expcard .t{display:block;font-family:var(--font-ui);font-size:18px;font-weight:500;color:#3D4558;line-height:1.3}
+.expcard .s{display:block;font-size:14px;color:#3D4558;margin-top:4px}
+.expcard .amt{font-family:var(--font-display);font-size:16px;font-weight:400;color:#555555}
+.expcard .r{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;
+  gap:8px;align-self:stretch;text-align:right}
+.expcard .date{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.legend{max-width:340px;font-size:12.5px;color:#6A7686;line-height:1.5;text-align:center}
+.legend b{color:var(--navy)}
+/* ===== Nombres de persona =====
+   Todos los nombres destacados de participantes y usuarios comparten
+   el mismo estilo: Neo Sans Std medium 20. */
+.personcard .a, .balrow .who .a, .membercard .nm, .reqcard .who .a,
+.mrow .nm, .ownercard .nm{
+  font-family:var(--font-display);
+  font-size:20px;
+  font-weight:500;
+  line-height:1.2;
+}
+
+@media (max-width:430px){
+  body{padding:0;background:#fff;align-items:stretch}
+  .stage{gap:0;width:100%}
+  .brandbar,.legend{display:none}
+  .phone{width:100vw;height:100vh;border-radius:0;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="brandbar"><span class="dot">✦</span> Banco Popular · Grupos de pago <small>— prototipo UX, datos ficticios</small></div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 10.6 9.9 8.7a2.7 2.7 0 0 0-3.8 0L8 10.6Zm0-4.4c1.4 0 2.7.5 3.7 1.5l1.4-1.4A7.2 7.2 0 0 0 8 4.2c-2 0-3.8.8-5.1 2.1l1.4 1.4A5.2 5.2 0 0 1 8 6.2Zm0-4C10.6 2.2 13 3.2 14.8 5L16 3.8A11 11 0 0 0 8 .5 11 11 0 0 0 0 3.8L1.2 5A9.8 9.8 0 0 1 8 2.2Z"/></svg>
+        <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="19" height="9" rx="2" fill="currentColor"/><path d="M24 4.5v4a2.2 2.2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="viewport" id="viewport"></div>
+  </div>
+  <div class="legend">Prototipo demostrativo. <b>No es una app bancaria real:</b> no hay inicio de sesión, pagos reales ni datos personales. Todos los nombres, cuentas y montos son ficticios.</div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   GRUPOS DE PAGO — Prototipo UX (Banco Popular)
+   Un solo archivo. Sin dependencias.
+   ============================================================ */
+
+/* ---------- Iconos ---------- */
+const I = {
+  back:'<svg width="13" height="22" viewBox="0 0 13 22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 1 2 11l9 10"/></svg>',
+  search:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.8"/><path d="M15.6 15.6 21 21"/></svg>',
+  fwd:'<svg width="13" height="22" viewBox="0 0 13 22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 1l9 10-9 10"/></svg>',
+  close:'<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 3l14 14M17 3 3 17"/></svg>',
+  chev:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M8 21L15.875 12L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  down:'<svg width="15" height="9" viewBox="0 0 15 9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5 7.5 7.5l6-6"/></svg>',
+  up:'<svg width="15" height="9" viewBox="0 0 15 9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 7.5 7.5 1.5l6 6"/></svg>',
+  gear:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M16.501 3.75C16.7681 3.75 17.0152 3.89223 17.1495 4.12305L21.6485 11.8545C21.7825 12.0848 21.7846 12.3696 21.6534 12.6016L17.1182 20.6191C16.9852 20.8543 16.7361 20.9999 16.4659 21H7.46784C7.19586 21 6.945 20.8528 6.81256 20.6152L2.34479 12.5967C2.21609 12.3654 2.21852 12.0832 2.35163 11.8545L6.85065 4.12305C6.98495 3.89223 7.23204 3.75 7.49909 3.75H16.501ZM3.86237 12.2402L7.90827 19.5H16.0284L20.1348 12.2363L16.0694 5.25H7.93073L3.86237 12.2402ZM12.002 7.49707C14.6005 7.49726 16.6924 9.62526 16.6924 12.2324C16.6922 14.8393 14.6003 16.9676 12.002 16.9678C9.40373 16.9676 7.3109 14.8393 7.31061 12.2324C7.31061 9.62528 9.40355 7.49729 12.002 7.49707ZM12.002 8.99707C10.2477 8.99729 8.81061 10.4379 8.81061 12.2324C8.8109 14.0267 10.2478 15.4676 12.002 15.4678C13.7562 15.4676 15.1922 14.0267 15.1924 12.2324C15.1924 10.4379 13.7564 8.99726 12.002 8.99707Z" fill="currentColor"/></svg>',
+  share:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5M8 7l4-4 4 4"/><path d="M5 13v6.5h14V13"/></svg>',
+  plus:'<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10 3v14M3 10h14"/></svg>',
+  check:'<svg width="15" height="12" viewBox="0 0 15 12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 6.2 5.4 10 13.5 1.6"/></svg>',
+  /* Comprobante: círculo con el check que sobresale, como en la app del banco */
+  checkCircle:'<svg width="82" height="82" viewBox="0 0 82 82" fill="none" stroke="#0F6F91" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="41" cy="41" r="26"/><path d="M28 41.8 38.4 52 58 27.5"/></svg>',
+  checkBig:'<svg width="46" height="36" viewBox="0 0 46 36" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19 16 32 43 4"/></svg>',
+  avatar:'<svg width="40" height="40" viewBox="0 0 40 40" fill="none"><g clip-path="url(#gpAvatarClip)"><rect width="40" height="40" rx="20" fill="#FEFAF1"/><path fill-rule="evenodd" clip-rule="evenodd" d="M19.9998 22.3051C23.6603 22.3051 26.5887 19.4906 26.5887 15.9724C26.5887 12.4542 23.6603 9.63965 19.9998 9.63965C16.3393 9.63965 13.4109 12.4542 13.4109 15.9724C13.4109 19.4906 16.3393 22.3051 19.9998 22.3051ZM31.4693 37.7015V39.3433H8.53027V37.7015C8.53027 31.6033 13.655 26.6779 19.9998 26.6779C26.3447 26.6779 31.4693 31.6033 31.4693 37.7015Z" fill="#F7D2AB"/><path d="M31.4693 39.3433V40.0933C31.8836 40.0933 32.2193 39.7575 32.2193 39.3433H31.4693ZM8.53027 39.3433H7.78027C7.78027 39.7575 8.11606 40.0933 8.53027 40.0933V39.3433ZM26.5887 15.9724H25.8387C25.8387 19.0486 23.2744 21.5551 19.9998 21.5551V22.3051V23.0551C24.0462 23.0551 27.3387 19.9325 27.3387 15.9724H26.5887ZM19.9998 9.63965V10.3896C23.2744 10.3896 25.8387 12.8962 25.8387 15.9724H26.5887H27.3387C27.3387 12.0122 24.0462 8.88965 19.9998 8.88965V9.63965ZM13.4109 15.9724H14.1609C14.1609 12.8962 16.7252 10.3896 19.9998 10.3896V9.63965V8.88965C15.9534 8.88965 12.6609 12.0122 12.6609 15.9724H13.4109ZM19.9998 22.3051V21.5551C16.7252 21.5551 14.1609 19.0486 14.1609 15.9724H13.4109H12.6609C12.6609 19.9325 15.9534 23.0551 19.9998 23.0551V22.3051ZM31.4693 39.3433H32.2193V37.7015H31.4693H30.7193V39.3433H31.4693ZM8.53027 39.3433V40.0933H31.4693V39.3433V38.5933H8.53027V39.3433ZM8.53027 37.7015H7.78027V39.3433H8.53027H9.28027V37.7015H8.53027ZM19.9998 26.6779V25.9279C13.2691 25.9279 7.78027 31.1613 7.78027 37.7015H8.53027H9.28027C9.28027 32.0453 14.0409 27.4279 19.9998 27.4279V26.6779ZM31.4693 37.7015H32.2193C32.2193 31.1613 26.7306 25.9279 19.9998 25.9279V26.6779V27.4279C25.9587 27.4279 30.7193 32.0453 30.7193 37.7015H31.4693Z" fill="#ED8B00"/></g><rect x="0.75" y="0.75" width="38.5" height="38.5" rx="19.25" stroke="#ED8B00" stroke-width="1.5"/><defs><clipPath id="gpAvatarClip"><rect width="40" height="40" rx="20" fill="white"/></clipPath></defs></svg>',
+  user:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="9" r="3.4"/><path d="M4.8 20a7.6 7.6 0 0 1 14.4 0"/></svg>',
+  users:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17.7675 14.4756C18.1814 14.4757 18.5173 14.8116 18.5175 15.2256V16.9834H20.2528C20.6666 16.9837 21.0024 17.3197 21.0028 17.7334C21.0028 18.1475 20.6668 18.4831 20.2528 18.4834H18.5175V20.2461C18.5173 20.6601 18.1815 20.9959 17.7675 20.9961C17.3533 20.9961 17.0176 20.6602 17.0175 20.2461V18.4834H15.2821C14.8679 18.4834 14.5321 18.1476 14.5321 17.7334C14.5325 17.3195 14.8681 16.9834 15.2821 16.9834H17.0175V15.2256C17.0177 14.8115 17.3534 14.4756 17.7675 14.4756ZM9.84071 12.3486C11.902 12.3486 13.763 13.2169 15.0829 14.6074C15.368 14.9079 15.355 15.3828 15.0546 15.668C14.7541 15.9531 14.2792 15.9411 13.994 15.6406C12.9437 14.5341 11.4711 13.8486 9.84071 13.8486C7.3846 13.8488 5.27763 15.4094 4.45204 17.6162C4.30674 18.0038 3.87494 18.2006 3.4872 18.0557C3.0994 17.9104 2.90264 17.4777 3.04774 17.0898C4.08257 14.3242 6.73072 12.3488 9.84071 12.3486ZM9.84071 4.25781C12.0594 4.25786 13.8445 6.07401 13.8446 8.29688C13.8444 10.5197 12.0593 12.3349 9.84071 12.335C7.62213 12.3349 5.83697 10.5196 5.83681 8.29688C5.83689 6.07404 7.62208 4.25792 9.84071 4.25781ZM9.84071 5.75781C8.46556 5.75792 7.33689 6.88733 7.33681 8.29688C7.33697 9.70634 8.46562 10.8348 9.84071 10.835C11.2159 10.8349 12.3445 9.70638 12.3446 8.29688C12.3445 6.88729 11.2159 5.75786 9.84071 5.75781ZM17.1278 4C18.7436 4.00004 20.0399 5.32206 20.0399 6.93555C20.0398 8.5489 18.7435 9.87007 17.1278 9.87012C15.5122 9.87001 14.2159 8.54886 14.2157 6.93555C14.2157 5.3221 15.5121 4.00011 17.1278 4ZM17.1278 5.5C16.3556 5.50011 15.7157 6.13539 15.7157 6.93555C15.7159 7.73556 16.3557 8.37001 17.1278 8.37012C17.9 8.37007 18.5398 7.7356 18.5399 6.93555C18.5399 6.13534 17.9001 5.50004 17.1278 5.5Z" fill="currentColor"/><path d="M20.1949 11.5857C19.4048 10.7977 18.3166 10.3184 17.1207 10.3293C15.9642 10.3402 14.9155 10.8086 14.147 11.5639" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  qr:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9.58496 13.6572C9.99917 13.6572 10.335 13.993 10.335 14.4072V19.252C10.3347 19.6659 9.999 20.002 9.58496 20.002H4.75C4.33596 20.002 4.00028 19.6659 4 19.252V14.4072C4 13.993 4.33579 13.6572 4.75 13.6572H9.58496ZM19.251 13.6572C19.6652 13.6572 20.001 13.993 20.001 14.4072V19.252C20.0007 19.6659 19.665 20.002 19.251 20.002H14.416C14.0022 20.0017 13.6663 19.6658 13.666 19.252V14.4072C13.666 13.9932 14.002 13.6575 14.416 13.6572H19.251ZM12.0146 13.6572C12.4289 13.6572 12.7646 13.993 12.7646 14.4072V19.248C12.7646 19.6622 12.4288 19.998 12.0146 19.998C11.6005 19.998 11.2647 19.6622 11.2646 19.248V14.4072C11.2646 13.993 11.6005 13.6573 12.0146 13.6572ZM5.5 18.502H8.83496V15.1572H5.5V18.502ZM15.166 18.502H18.501V15.1572H15.166V18.502ZM12.001 11.2227C12.415 11.2228 12.7508 11.5587 12.751 11.9727C12.751 12.3868 12.4151 12.7225 12.001 12.7227H4.75C4.33579 12.7227 4 12.3869 4 11.9727C4.00015 11.5586 4.33588 11.2227 4.75 11.2227H12.001ZM14.4648 11.2227C14.8238 11.2227 15.1227 11.4756 15.1963 11.8125C15.2698 11.4754 15.5696 11.2227 15.9287 11.2227H17.6426C17.9385 11.2228 18.1925 11.3955 18.3145 11.6445C18.4364 11.3955 18.6903 11.2227 18.9863 11.2227H19.0352C19.4492 11.2228 19.785 11.5587 19.7852 11.9727C19.7852 12.3868 19.4492 12.7225 19.0352 12.7227H18.9863C18.6898 12.7227 18.4362 12.5495 18.3145 12.2998C18.1927 12.5495 17.939 12.7225 17.6426 12.7227H15.9287C15.5694 12.7227 15.2696 12.4702 15.1963 12.1328C15.1229 12.47 14.824 12.7226 14.4648 12.7227H14.416C14.002 12.7224 13.666 12.3867 13.666 11.9727C13.6662 11.5587 14.0021 11.2229 14.416 11.2227H14.4648ZM9.58496 4C9.99917 4 10.335 4.33579 10.335 4.75V9.56348C10.3347 9.97747 9.99901 10.3135 9.58496 10.3135H4.75C4.33595 10.3135 4.00026 9.97747 4 9.56348V4.75C4 4.33579 4.33579 4 4.75 4H9.58496ZM12.0146 5.79785C12.4289 5.79785 12.7646 6.13364 12.7646 6.54785V9.56348C12.7645 9.97756 12.4288 10.3135 12.0146 10.3135C11.6006 10.3134 11.2648 9.97753 11.2646 9.56348V6.54785C11.2646 6.13367 11.6005 5.7979 12.0146 5.79785ZM19.251 4C19.6652 4 20.001 4.33579 20.001 4.75V9.56348C20.0007 9.97747 19.665 10.3135 19.251 10.3135H14.416C14.0022 10.3132 13.6663 9.97731 13.666 9.56348V4.75C13.666 4.33594 14.002 4.00025 14.416 4H19.251ZM5.5 8.81348H8.83496V5.5H5.5V8.81348ZM15.166 8.81348H18.501V5.5H15.166V8.81348ZM12.0146 4C12.4289 4 12.7646 4.33579 12.7646 4.75V4.76172C12.7646 5.17593 12.4289 5.51172 12.0146 5.51172C11.6005 5.51167 11.2646 5.1759 11.2646 4.76172V4.75C11.2646 4.33582 11.6005 4.00005 12.0146 4Z" fill="currentColor"/></svg>',
+  wallet:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M14.4473 3.0859C15.5156 2.72983 16.619 3.52523 16.6191 4.65133V5.53121C17.4026 5.65949 18.0009 6.33845 18.001 7.15816V19.3496C18.0008 20.2607 17.2618 20.999 16.3506 20.999H7.65039C6.7392 20.999 6.00014 20.2607 6 19.3496V6.81051C6.00009 6.1427 6.50281 5.593 7.15039 5.51754L14.4473 3.0859ZM7.5 19.3496C7.50014 19.4323 7.56763 19.499 7.65039 19.499H16.3506C16.4333 19.499 16.5008 19.4323 16.501 19.3496V7.15816C16.5009 7.0754 16.4334 7.00777 16.3506 7.00777H7.5V19.3496ZM15.2188 15.288C15.6328 15.2883 15.9688 15.624 15.9688 16.038C15.9686 16.452 15.6327 16.7878 15.2188 16.788H9.12109C8.70699 16.788 8.37126 16.4521 8.37109 16.038C8.37109 15.6238 8.70688 15.288 9.12109 15.288H15.2188ZM15.2188 12.831C15.6328 12.8313 15.9688 13.1669 15.9688 13.581C15.9687 13.995 15.6327 14.3308 15.2188 14.331H9.12109C8.70692 14.331 8.37117 13.9952 8.37109 13.581C8.37109 13.1668 8.70688 12.831 9.12109 12.831H15.2188ZM14.9219 4.50875L11.9248 5.50777H15.1191V4.65133C15.119 4.54912 15.0189 4.47657 14.9219 4.50875Z" fill="currentColor"/></svg>',
+  shield:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 3L4.5 6.4416V14.4786C4.5 18.1007 8.81458 20.31 12 20.9968C12.412 21.0871 19.5 19.278 19.5 14.4786V6.4416L12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.951 17.7514C17.0556 15.4008 14.7616 13.7251 12.0715 13.7251C9.38128 13.7251 7.0873 15.3968 6.19189 17.7514" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="12.0715" cy="9.11196" rx="3.14184" ry="3.11196" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  cash:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6.84839 13.0166C8.11259 11.9208 9.42277 11.9581 10.5916 12.1357L10.6003 12.1367C11.3097 12.2528 11.8661 12.4426 12.3269 12.5723C12.7909 12.7028 13.2349 12.7998 13.8523 12.7998H14.9177C15.4068 12.7999 15.8693 12.9982 16.2097 13.3477C16.4563 13.6009 16.621 13.9172 16.6931 14.2559L18.7546 13.3779C18.958 13.2884 19.1795 13.2314 19.4119 13.2188L19.4529 13.2178C19.6626 13.2178 19.8648 13.2624 20.0476 13.3389C20.2247 13.413 20.402 13.5264 20.5535 13.6855L20.5544 13.6846C20.5575 13.6878 20.5602 13.6921 20.5632 13.6953C20.5643 13.6964 20.5661 13.6971 20.5671 13.6982L20.5662 13.6992C20.7039 13.844 20.8134 14.0105 20.8875 14.1973C20.9599 14.38 21.0007 14.5812 21.0007 14.7881C21.0007 15.061 20.9349 15.3374 20.7869 15.5908C20.6468 15.8305 20.4471 16.0228 20.2107 16.1572L20.2117 16.1592L16.9021 18.1357V18.1367C16.2504 18.525 15.5064 18.7373 14.741 18.7373H7.41675L5.38159 20.7783C5.08915 21.0715 4.61432 21.0716 4.32105 20.7793C4.02781 20.4868 4.02672 20.012 4.31909 19.7188L6.57398 17.458L6.68823 17.3643C6.81073 17.2823 6.95564 17.2373 7.10523 17.2373H14.741C15.2271 17.2373 15.7063 17.1022 16.1335 16.8477L19.4421 14.8721L19.4695 14.8564C19.4795 14.851 19.4865 14.8442 19.4919 14.835C19.4943 14.8309 19.4963 14.826 19.4978 14.8203C19.4993 14.8143 19.5007 14.8039 19.5007 14.7881C19.5007 14.7808 19.4995 14.7666 19.4929 14.75C19.4903 14.7434 19.487 14.7384 19.4802 14.7314C19.4784 14.7296 19.4761 14.7274 19.4744 14.7256C19.4731 14.7249 19.471 14.7237 19.4685 14.7227C19.4668 14.722 19.4651 14.7212 19.4636 14.7207C19.4311 14.7254 19.396 14.7338 19.3591 14.75L19.3513 14.7539L15.6433 16.335L15.6423 16.334C15.639 16.3354 15.635 16.3355 15.6316 16.3369C15.4088 16.4337 15.1671 16.4863 14.9177 16.4863C14.8983 16.4863 14.8792 16.4848 14.8601 16.4834H11.0154C10.6012 16.4834 10.2655 16.1475 10.2654 15.7334C10.2656 15.3193 10.6013 14.9834 11.0154 14.9834H14.9246C14.9606 14.9834 14.9981 14.9756 15.0369 14.9609C15.0721 14.9455 15.1057 14.9232 15.1355 14.8926L15.1404 14.8877C15.1968 14.8306 15.235 14.7417 15.2351 14.6436C15.235 14.5494 15.1991 14.46 15.1355 14.3945C15.0734 14.3308 14.9963 14.2999 14.9177 14.2998H13.8523C13.0494 14.2998 12.4608 14.1676 11.9207 14.0156C11.3798 13.8634 10.9612 13.7163 10.366 13.6182C9.35181 13.464 8.599 13.4868 7.83765 14.1426L4.25562 17.417C3.94987 17.6964 3.4755 17.6749 3.19605 17.3691C2.91707 17.0634 2.93832 16.5889 3.2439 16.3096L6.83276 13.0293L6.84839 13.0166ZM14.0076 4C14.4216 4.00019 14.7576 4.3359 14.7576 4.75V5.10449H15.6218C16.036 5.10451 16.3717 5.44039 16.3718 5.85449C16.3718 6.2687 16.036 6.60448 15.6218 6.60449H13.4675C13.39 6.6046 13.3049 6.63843 13.2419 6.70312C13.1776 6.76941 13.1385 6.86237 13.1384 6.96289C13.1384 7.06338 13.1777 7.15634 13.2419 7.22266C13.3059 7.28834 13.3877 7.32119 13.4675 7.32129H14.5427C15.0331 7.32129 15.5028 7.52433 15.8425 7.87305C16.1807 8.22041 16.3718 8.68947 16.3718 9.17969C16.3718 9.66994 16.1807 10.1389 15.8425 10.4863C15.5532 10.7834 15.1715 10.9747 14.7576 11.0244V11.3857C14.7574 11.7997 14.4215 12.1356 14.0076 12.1357C13.5935 12.1357 13.2577 11.7998 13.2576 11.3857V11.0381H12.3884C11.9744 11.0379 11.6385 10.7021 11.6384 10.2881C11.6386 9.8741 11.9745 9.53828 12.3884 9.53809H13.9099C13.9418 9.53394 13.9746 9.53126 14.0076 9.53125C14.0404 9.53126 14.0726 9.53399 14.1042 9.53809H14.5427C14.6226 9.53809 14.7043 9.50519 14.7683 9.43945C14.8327 9.37313 14.8718 9.28031 14.8718 9.17969C14.8718 9.07917 14.8326 8.98621 14.7683 8.91992C14.7053 8.85532 14.6203 8.82129 14.5427 8.82129H13.4675C12.9722 8.82119 12.5064 8.61731 12.1677 8.26953C11.8297 7.92215 11.6384 7.45303 11.6384 6.96289C11.6385 6.47271 11.8296 6.00361 12.1677 5.65625C12.4585 5.35766 12.8449 5.1672 13.2576 5.11816V4.75C13.2576 4.33583 13.5934 4.00008 14.0076 4Z" fill="currentColor"/></svg>',
+  addu:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17.7675 14.4756C18.1814 14.4757 18.5173 14.8116 18.5175 15.2256V16.9834H20.2528C20.6666 16.9837 21.0024 17.3197 21.0028 17.7334C21.0028 18.1475 20.6668 18.4831 20.2528 18.4834H18.5175V20.2461C18.5173 20.6601 18.1815 20.9959 17.7675 20.9961C17.3533 20.9961 17.0176 20.6602 17.0175 20.2461V18.4834H15.2821C14.8679 18.4834 14.5321 18.1476 14.5321 17.7334C14.5325 17.3195 14.8681 16.9834 15.2821 16.9834H17.0175V15.2256C17.0177 14.8115 17.3534 14.4756 17.7675 14.4756ZM9.84071 12.3486C11.902 12.3486 13.763 13.2169 15.0829 14.6074C15.368 14.9079 15.355 15.3828 15.0546 15.668C14.7541 15.9531 14.2792 15.9411 13.994 15.6406C12.9437 14.5341 11.4711 13.8486 9.84071 13.8486C7.3846 13.8488 5.27763 15.4094 4.45204 17.6162C4.30674 18.0038 3.87494 18.2006 3.4872 18.0557C3.0994 17.9104 2.90264 17.4777 3.04774 17.0898C4.08257 14.3242 6.73072 12.3488 9.84071 12.3486ZM9.84071 4.25781C12.0594 4.25786 13.8445 6.07401 13.8446 8.29688C13.8444 10.5197 12.0593 12.3349 9.84071 12.335C7.62213 12.3349 5.83697 10.5196 5.83681 8.29688C5.83689 6.07404 7.62208 4.25792 9.84071 4.25781ZM9.84071 5.75781C8.46556 5.75792 7.33689 6.88733 7.33681 8.29688C7.33697 9.70634 8.46562 10.8348 9.84071 10.835C11.2159 10.8349 12.3445 9.70638 12.3446 8.29688C12.3445 6.88729 11.2159 5.75786 9.84071 5.75781ZM17.1278 4C18.7436 4.00004 20.0399 5.32206 20.0399 6.93555C20.0398 8.5489 18.7435 9.87007 17.1278 9.87012C15.5122 9.87001 14.2159 8.54886 14.2157 6.93555C14.2157 5.3221 15.5121 4.00011 17.1278 4ZM17.1278 5.5C16.3556 5.50011 15.7157 6.13539 15.7157 6.93555C15.7159 7.73556 16.3557 8.37001 17.1278 8.37012C17.9 8.37007 18.5398 7.7356 18.5399 6.93555C18.5399 6.13534 17.9001 5.50004 17.1278 5.5Z" fill="currentColor"/><path d="M20.1949 11.5855C19.4048 10.7975 18.3166 10.3181 17.1207 10.329C15.9642 10.3399 14.9155 10.8084 14.147 11.5637" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  invite:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M8.57814 12.0273C9.77245 11.922 10.781 12.1363 11.6172 12.3555C12.5052 12.5883 13.0661 12.7773 13.5977 12.7773H15.291C16.2302 12.7773 16.9246 13.4711 17.0801 14.3076L18.6865 13.5947L18.7119 13.584C18.8722 13.5199 19.0643 13.4532 19.1504 13.4209C19.264 13.3783 19.3076 13.3557 19.3272 13.3428L19.4483 13.2773C20.2326 12.9413 20.9867 13.2666 21.4151 13.8145L21.4961 13.9268L21.5234 13.9707C21.9587 14.7327 21.7648 15.7714 20.9307 16.248L20.9229 16.2529L20.9219 16.252L20.3584 16.5664L17.4307 18.3105L17.4297 18.3096C16.6088 18.8266 15.7195 19.043 14.7891 19.043H7.00001L4.70802 21.2197C4.40771 21.505 3.93276 21.4927 3.64747 21.1924C3.36261 20.8921 3.37485 20.418 3.67482 20.1328L6.1836 17.75L6.29591 17.6611C6.41568 17.5846 6.55611 17.543 6.70021 17.543H14.7891C15.4819 17.543 16.0911 17.3854 16.6445 17.0332L16.6631 17.0215L19.6104 15.2656C19.6167 15.2618 19.6234 15.2585 19.6299 15.2549L20.1865 14.9453L20.2227 14.9141C20.2326 14.9007 20.2403 14.8843 20.2451 14.8643C20.2542 14.8265 20.2503 14.7803 20.2295 14.7344C20.1884 14.6816 20.1482 14.6572 20.124 14.6484C20.1109 14.6437 20.0996 14.6423 20.0899 14.6426C20.0833 14.6428 20.074 14.6454 20.0606 14.6494C19.9234 14.728 19.7879 14.7839 19.6777 14.8252C19.5128 14.887 19.4226 14.9153 19.2695 14.9766L15.9092 16.4707C15.8133 16.5133 15.7094 16.5352 15.6045 16.5352H10.9639C10.5498 16.535 10.214 16.1992 10.2139 15.7852C10.2139 15.3967 10.5094 15.0774 10.8877 15.0391L10.9639 15.0352H14.7539L15.2803 14.9814C15.3879 14.9515 15.4802 14.8907 15.5401 14.8174C15.6021 14.7412 15.6177 14.6706 15.6113 14.6133C15.5856 14.3827 15.4284 14.2773 15.291 14.2773H13.5977C12.8126 14.2773 11.9626 13.996 11.2363 13.8057C10.4623 13.6028 9.65655 13.4419 8.7256 13.5215C8.51681 13.5507 8.20338 13.678 7.77931 13.9502C7.36105 14.2187 6.898 14.5852 6.40724 15.0107C5.91796 15.435 5.41872 15.9018 4.92286 16.3652C4.43227 16.8237 3.94178 17.2822 3.48829 17.6709C3.1738 17.9405 2.70024 17.9043 2.43068 17.5898C2.16113 17.2754 2.19728 16.8018 2.51173 16.5322C2.93596 16.1686 3.40165 15.7338 3.89845 15.2695C4.39026 14.8099 4.91075 14.3237 5.42482 13.8779C5.93729 13.4335 6.46215 13.0127 6.96876 12.6875C7.46185 12.371 8.00699 12.0983 8.55079 12.0303L8.57814 12.0273ZM13.5 8.25C15.1613 8.25005 16.6435 9.0112 17.6553 10.2012C17.9236 10.5168 17.8859 10.9905 17.5703 11.2588C17.2547 11.5269 16.781 11.4884 16.5127 11.1729C15.7641 10.2923 14.6887 9.75005 13.5 9.75C12.3133 9.75008 11.2367 10.292 10.4873 11.1729C10.2189 11.4882 9.74515 11.5262 9.4297 11.2578C9.11479 10.9894 9.07674 10.5165 9.34474 10.2012C10.357 9.0113 11.8404 8.25008 13.5 8.25ZM13.5 2.25C15.1569 2.25 16.5 3.59315 16.5 5.25C16.5 6.90685 15.1569 8.25 13.5 8.25C11.8432 8.24999 10.5 6.90685 10.5 5.25C10.5 3.59315 11.8432 2.25001 13.5 2.25ZM13.5 3.75C12.6716 3.75001 12 4.42158 12 5.25C12 6.07842 12.6716 6.74999 13.5 6.75C14.3284 6.75 15 6.07843 15 5.25C15 4.42157 14.3284 3.75 13.5 3.75Z" fill="currentColor"/></svg>',
+  bell:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M6.5 10a5.5 5.5 0 0 1 11 0c0 4 1.6 5.6 1.6 5.6H4.9S6.5 14 6.5 10Z"/><path d="M10 18.6a2.2 2.2 0 0 0 4 0"/></svg>',
+  box:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="2.8" y="4.5" width="18.4" height="4.5" rx="1.2"/><path d="M4.5 9v9.2a1.3 1.3 0 0 0 1.3 1.3h12.4a1.3 1.3 0 0 0 1.3-1.3V9"/><path d="M9.6 13h4.8"/></svg>',
+  cal:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="4" width="17" height="16" rx="2.4"/><path d="M2.5 8.6h17M7 2.2v3.6M15 2.2v3.6"/></svg>',
+  smile:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 21C11.1824 21 10.3912 20.8912 9.62647 20.6735C8.86765 20.4618 8.15294 20.1559 7.48235 19.7559C6.81176 19.3618 6.20294 18.8912 5.65588 18.3441C5.10882 17.7971 4.63529 17.1882 4.23529 16.5176C3.84118 15.8471 3.53529 15.1324 3.31765 14.3735C3.10588 13.6088 3 12.8176 3 12C3 11.1765 3.10588 10.3853 3.31765 9.62647C3.53529 8.86765 3.84118 8.15294 4.23529 7.48235C4.63529 6.81176 5.10882 6.20294 5.65588 5.65588C6.20294 5.10882 6.80882 4.63824 7.47353 4.24412C8.14412 3.84412 8.85882 3.53824 9.61765 3.32647C10.3824 3.10882 11.1735 3 11.9912 3C12.8147 3 13.6059 3.10882 14.3647 3.32647C15.1294 3.53824 15.8441 3.84412 16.5088 4.24412C17.1794 4.63824 17.7882 5.10882 18.3353 5.65588C18.8882 6.20294 19.3618 6.81176 19.7559 7.48235C20.1559 8.15294 20.4618 8.86765 20.6735 9.62647C20.8912 10.3853 21 11.1765 21 12C21 12.8176 20.8912 13.6088 20.6735 14.3735C20.4618 15.1324 20.1559 15.8471 19.7559 16.5176C19.3618 17.1882 18.8912 17.7971 18.3441 18.3441C17.7971 18.8912 17.1882 19.3618 16.5176 19.7559C15.8471 20.1559 15.1324 20.4618 14.3735 20.6735C13.6147 20.8912 12.8235 21 12 21ZM12 19.5C12.8353 19.5 13.6265 19.3735 14.3735 19.1206C15.1265 18.8676 15.8147 18.5118 16.4382 18.0529C17.0618 17.5941 17.6 17.0529 18.0529 16.4294C18.5118 15.8059 18.8647 15.1206 19.1118 14.3735C19.3647 13.6206 19.4912 12.8294 19.4912 12C19.4912 11.1647 19.3647 10.3735 19.1118 9.62647C18.8588 8.87353 18.5029 8.18529 18.0441 7.56176C17.5912 6.93824 17.0529 6.39706 16.4294 5.93824C15.8059 5.47941 15.1176 5.12647 14.3647 4.87941C13.6176 4.62647 12.8265 4.5 11.9912 4.5C11.1559 4.5 10.3647 4.62647 9.61765 4.87941C8.87059 5.12647 8.18529 5.47941 7.56176 5.93824C6.93824 6.39706 6.39706 6.93824 5.93824 7.56176C5.48529 8.18529 5.13235 8.87353 4.87941 9.62647C4.63235 10.3735 4.50882 11.1647 4.50882 12C4.50882 12.8353 4.63235 13.6294 4.87941 14.3824C5.13235 15.1294 5.48529 15.8147 5.93824 16.4382C6.39706 17.0618 6.93824 17.6029 7.56176 18.0618C8.18529 18.5206 8.87059 18.8735 9.61765 19.1206C10.3706 19.3735 11.1647 19.5 12 19.5ZM9.37941 11.1971C9.19118 11.1971 9.01471 11.1382 8.85 11.0206C8.69118 10.9029 8.56176 10.75 8.46176 10.5618C8.36765 10.3676 8.32059 10.1618 8.32059 9.94412C8.32059 9.71471 8.36765 9.50588 8.46176 9.31765C8.56176 9.12941 8.69118 8.97941 8.85 8.86765C9.00882 8.75 9.18529 8.69118 9.37941 8.69118C9.57353 8.69118 9.75 8.74706 9.90882 8.85882C10.0735 8.97059 10.2029 9.12353 10.2971 9.31765C10.3971 9.50588 10.4471 9.71471 10.4471 9.94412C10.4471 10.1676 10.3971 10.3765 10.2971 10.5706C10.1971 10.7588 10.0647 10.9118 9.9 11.0294C9.74118 11.1412 9.56765 11.1971 9.37941 11.1971ZM14.6294 11.1971C14.4412 11.1971 14.2647 11.1412 14.1 11.0294C13.9353 10.9118 13.8029 10.7588 13.7029 10.5706C13.6029 10.3765 13.5529 10.1676 13.5529 9.94412C13.5529 9.71471 13.6 9.50588 13.6941 9.31765C13.7941 9.12353 13.9265 8.97059 14.0912 8.85882C14.2559 8.74706 14.4353 8.69118 14.6294 8.69118C14.8235 8.69118 15 8.75 15.1588 8.86765C15.3176 8.97941 15.4441 9.12941 15.5382 9.31765C15.6324 9.50588 15.6794 9.71471 15.6794 9.94412C15.6794 10.1618 15.6294 10.3676 15.5294 10.5618C15.4353 10.75 15.3088 10.9029 15.15 11.0206C14.9912 11.1382 14.8176 11.1971 14.6294 11.1971ZM12 18.0441C11.2412 18.0441 10.5294 17.9176 9.86471 17.6647C9.2 17.4059 8.60882 17.0529 8.09118 16.6059C7.57353 16.1529 7.15 15.6324 6.82059 15.0441C6.49118 14.4559 6.28529 13.8324 6.20294 13.1735C6.16765 12.9088 6.22353 12.7206 6.37059 12.6088C6.51765 12.4912 6.70882 12.4676 6.94412 12.5382C7.80294 12.7912 8.64118 12.9853 9.45882 13.1206C10.2765 13.2559 11.1235 13.3235 12 13.3235C12.8765 13.3235 13.7235 13.2559 14.5412 13.1206C15.3647 12.9853 16.2029 12.7912 17.0559 12.5382C17.2912 12.4676 17.4824 12.4882 17.6294 12.6C17.7765 12.7118 17.8324 12.9029 17.7971 13.1735C17.7147 13.8324 17.5088 14.4559 17.1794 15.0441C16.8559 15.6324 16.4324 16.1529 15.9088 16.6059C15.3912 17.0529 14.8 17.4059 14.1353 17.6647C13.4706 17.9176 12.7588 18.0441 12 18.0441ZM11.9912 15.3088C12.6912 15.3088 13.4 15.2647 14.1176 15.1765C14.8353 15.0824 15.4912 14.9618 16.0853 14.8147C16.1676 14.7853 16.2324 14.7529 16.2794 14.7176C16.3265 14.6765 16.3706 14.6265 16.4118 14.5676C16.4706 14.4559 16.5353 14.3206 16.6059 14.1618C16.6824 14.0029 16.7441 13.8294 16.7912 13.6412C16.8029 13.5765 16.7765 13.55 16.7118 13.5618C16 13.7559 15.2412 13.9147 14.4353 14.0382C13.6353 14.1559 12.8206 14.2147 11.9912 14.2147C11.1618 14.2147 10.3471 14.1559 9.54706 14.0382C8.74706 13.9147 7.98824 13.7559 7.27059 13.5618C7.20588 13.55 7.17941 13.5765 7.19118 13.6412C7.24412 13.8353 7.30294 14.0088 7.36765 14.1618C7.43824 14.3147 7.50588 14.45 7.57059 14.5676C7.64118 14.6912 7.75294 14.7735 7.90588 14.8147C8.5 14.9618 9.15294 15.0824 9.86471 15.1765C10.5824 15.2647 11.2912 15.3088 11.9912 15.3088Z" fill="currentColor"/></svg>',
+  warn:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3ZM12 4.5C7.85786 4.5 4.5 7.85786 4.5 12C4.5 16.1421 7.85786 19.5 12 19.5C16.1421 19.5 19.5 16.1421 19.5 12C19.5 7.85786 16.1421 4.5 12 4.5ZM12.1445 14.7656C12.5587 14.7656 12.8945 15.1014 12.8945 15.5156C12.8945 15.9298 12.5587 16.2656 12.1445 16.2656H12.1367C11.7225 16.2656 11.3867 15.9298 11.3867 15.5156C11.3867 15.1014 11.7225 14.7656 12.1367 14.7656H12.1445ZM12.1406 7.59375C12.5548 7.59375 12.8906 7.92954 12.8906 8.34375V12.5625C12.8906 12.9767 12.5548 13.3125 12.1406 13.3125C11.7264 13.3125 11.3906 12.9767 11.3906 12.5625V8.34375C11.3906 7.92954 11.7264 7.59375 12.1406 7.59375Z" fill="currentColor"/></svg>',
+  /* Pago externo: mano recibiendo un billete con el símbolo de pesos */
+  extPay:'<svg width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="#002E6D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'
+    +'<rect x="13" y="8" width="25" height="15" rx="2"/>'
+    +'<path d="M25.5 12.4v6.6M27.4 14a2 2 0 0 0-3.6.8c0 1.9 3.6 1.2 3.6 3a2 2 0 0 1-3.6.8" stroke="#ED8B00"/>'
+    +'<path d="M6 29.5c3-1.6 5.2.4 7.3 2l3.7 2.8h8.6c2.1 0 2.6 3 0 3h-4.2"/>'
+    +'<path d="M25.6 37.3h8.9l7.7-4.8c2-1.2 3.6 1.4 2 2.8L33.4 42.5H15.6L6 35.4"/></svg>',
+  /* Check en círculo navy para el registro manual */
+  checkCircleNavy:'<svg width="82" height="82" viewBox="0 0 82 82" fill="none" stroke="#0B3D91" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="41" cy="41" r="27"/><path d="M31 41.5 38 48.5 51.5 34.5"/></svg>',
+  hand:'<svg width="42" height="42" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="14" y="9" width="26" height="15" rx="2.5"/><path d="M22 16.5h5M31 13.5v6"/><path d="M8 28c3-1.5 5 .5 7 2l4 3h9c2 0 2.5 3 0 3H22"/><path d="M25 36h9l8-5c2-1.2 3.6 1.4 2 2.8L33 42H16l-8-6"/></svg>',
+  doc:'<svg width="40" height="40" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M11 4h14l8 8v28H11z"/><path d="M25 4v8h8M16 22h12M16 28h12M16 34h7"/></svg>',
+  lock:'<svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="7" y="15" width="22" height="16" rx="3"/><path d="M12 15v-4a6 6 0 0 1 12 0v4"/><circle cx="18" cy="23" r="1.8" fill="currentColor" stroke="none"/></svg>',
+  clock:'<svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="18" cy="18" r="14"/><path d="M18 9.5V18l5.5 3.5"/></svg>',
+  link:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M10 13.6a4 4 0 0 0 5.7 0l2.9-2.9a4 4 0 1 0-5.7-5.7l-1.5 1.5"/><path d="M14 10.4a4 4 0 0 0-5.7 0l-2.9 2.9a4 4 0 1 0 5.7 5.7l1.5-1.5"/></svg>',
+  refresh:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 3.5V8h-4.5"/></svg>',
+  /* Diálogos de solicitud: rechazar (círculo con X) y aceptar (persona con +) */
+  rejectLg:'<svg width="56" height="56" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="28" cy="28" r="19"/><path d="M21.5 21.5 34.5 34.5M34.5 21.5 21.5 34.5"/></svg>',
+  acceptLg:'<svg width="56" height="56" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="26" cy="19" r="8"/><path d="M11 44a15 15 0 0 1 26.5-9.6"/><path d="M39 38.5h10M44 33.5v10" stroke="#ED8B00"/></svg>',
+  /* Compartir grupo: persona naranja + persona navy con el signo de más */
+  shareGroupLg:'<svg width="56" height="56" viewBox="0 0 48 48" fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">'
+    +'<g stroke="#ED8B00"><circle cx="16" cy="16" r="6.4"/><path d="M4.5 33.5a11.5 11.5 0 0 1 23 0"/></g>'
+    +'<g stroke="#002E6D"><circle cx="32" cy="13" r="5.2"/><path d="M28.5 25.5A10 10 0 0 1 42.5 31"/>'
+    +'<path d="M32.5 37.5h10M37.5 32.5v10"/></g></svg>'
+};
+
+/* ---------- Datos de demostración (ficticios) ---------- */
+const ME = 'u1';
+const PEOPLE = {
+  u1:{id:'u1',name:'Juan Pérez',full:'JUAN ANTONIO PÉREZ SANTANA',short:'Juan'},
+  u2:{id:'u2',name:'María Gómez',full:'MARÍA ALTAGRACIA GÓMEZ REYES',short:'María'},
+  u3:{id:'u3',name:'Pedro Martínez',full:'PEDRO LUIS MARTÍNEZ CRUZ',short:'Pedro'},
+  u4:{id:'u4',name:'Ana Rodríguez',full:'ANA CAROLINA RODRÍGUEZ BÁEZ',short:'Ana'},
+  u5:{id:'u5',name:'Luis Feliz',full:'LUIS MANUEL FELIZ PEÑA',short:'Luis'},
+  u6:{id:'u6',name:'Kevin',full:'KEVIN',short:'Kevin'},
+  u7:{id:'u7',name:'Leyda',full:'LEYDA',short:'Leyda'}
+};
+const ACCOUNTS = [
+  {id:'a1',name:'Cuenta Nómina',num:'8722992893',avail:13000},
+  {id:'a2',name:'Mis Ahorros',num:'8800081234',avail:60000}
+];
+const CATEGORIES = [
+  {id:'comida',e:'🍔',n:'Comida'},{id:'compras',e:'🛒',n:'Compras'},{id:'hogar',e:'🏠',n:'Hogar'},
+  {id:'transporte',e:'🚕',n:'Transporte'},{id:'entret',e:'🎤',n:'Entretenimiento'},{id:'viajes',e:'✈️',n:'Viajes'},
+  {id:'regalos',e:'🎁',n:'Regalos'},{id:'salud',e:'🩺',n:'Salud'},{id:'servicios',e:'📶',n:'Servicios'},{id:'otros',e:'✋',n:'Otros'}
+];
+const METODOS = {efectivo:'Pago en efectivo', transferencia:'Transferencia desde otro banco', otro:'Otro método'};
+const EMOJIS = ['🎉','🏔️','🍔','🏠','✈️','🎁','🍕','⚽','🎬','🏖️','☕','🚗','👶','🎂','💐','📶','🎮','🧾','🛒','💡','🐶','🎵','💼','🌮'];
+
+let nid = 100;
+const uid = p => (p||'x') + (++nid);
+
+const state = {
+  route:'home',
+  stack:[],
+  params:{},
+  modal:null,
+  toast:null,
+  tab:'gastos',
+  accordions:{miembros:false},   /* sin entrada = decide el contenido */
+  form:{},
+  pay:{},
+  persona:'admin',      // 'admin' | 'invitado'
+  groups:[
+    {
+      id:'g1', type:'gastos', emoji:'🏔️', name:'Viaje a Jarabacoa', category:'viajes',
+      owner:'u1', admins:['u1'], members:['u1','u2','u3','u4'], accountId:'a1', archived:false,
+      perms:{addExpense:'todos', join:'aprobacion', invite:'todos'}, reminders:true,
+      requests:[{id:'r1', userName:'María Gómez', full:'MARÍA ALTAGRACIA GÓMEZ REYES'}],
+      expenses:[
+        {id:'e1', title:'Cabaña 2 noches', emoji:'🏠', category:'hogar', amount:3500, paidBy:'u1', date:'8/Jul/2026',
+         split:{u1:875,u2:875,u3:875,u4:875}, paid:{u1:true,u2:true,u3:false,u4:false}},
+        {id:'e2', title:'Supermercado', emoji:'🛒', category:'compras', amount:1500, paidBy:'u2', date:'8/Jul/2026',
+         split:{u1:500,u2:500,u3:500}, paid:{u2:true,u1:false,u3:false}},
+        {id:'e3', title:'Gasolina', emoji:'🚕', category:'transporte', amount:850, paidBy:'u3', date:'9/Jul/2026',
+         split:{u1:212.5,u2:212.5,u3:212.5,u4:212.5}, paid:{u3:true,u1:false,u2:false,u4:false}}
+      ]
+    },
+    {
+      id:'g2', type:'gastos', emoji:'🍕', name:'Cena de los viernes', category:'comida',
+      owner:'u1', admins:['u1','u2'], members:['u1','u2','u3'], accountId:'a1', archived:false,
+      perms:{addExpense:'admins', join:'enlace', invite:'admins'}, reminders:true, requests:[],
+      expenses:[
+        {id:'e4', title:'Pizza', emoji:'🍔', category:'comida', amount:1200, paidBy:'u2', date:'10/Jul/2026',
+         split:{u1:400,u2:400,u3:400}, paid:{u2:true,u1:false,u3:false}}
+      ]
+    },
+    {
+      id:'g3', type:'colecta', emoji:'🎁', name:'Regalo para Ana', category:'regalos',
+      owner:'u1', admins:['u1'], members:['u1','u2','u3','u5'], accountId:'a2', archived:false,
+      perms:{addExpense:'admins', join:'enlace', invite:'todos'}, reminders:true, requests:[],
+      perPerson:1500, deadline:'30/Jul/2026',
+      contributions:{u1:false,u2:true,u3:false,u5:false}
+    },
+    {
+      id:'g4', type:'recurrente', emoji:'📶', name:'Internet apartamento', category:'servicios',
+      owner:'u3', admins:['u3','u1'], members:['u1','u3','u4'], accountId:'a1', archived:false,
+      perms:{addExpense:'admins', join:'aprobacion', invite:'admins'}, reminders:true, requests:[],
+      amount:2100, frequency:'Mensual', payDay:18, nextDate:'18/Ago/2026',
+      periods:[
+        {id:'p1', label:'Mes de julio', due:'18/Jul/2026', split:{u1:700,u3:700,u4:700}, paid:{u3:true,u1:false,u4:false}},
+        {id:'p2', label:'Mes de agosto', due:'18/Ago/2026', split:{u1:700,u3:700,u4:700}, paid:{u1:false,u3:false,u4:false}}
+      ]
+    },
+    {
+      id:'g5', type:'gastos', emoji:'🎉', name:'Junte del finde', category:'comida',
+      owner:'u2', admins:['u2'], members:['u2','u6','u7'], accountId:'a1', archived:false,
+      perms:{addExpense:'todos', join:'enlace', invite:'todos'}, reminders:true, requests:[],
+      /* El administrador ya dejó los nombres puestos; nadie los ha reclamado todavía */
+      unclaimed:['u6','u7'],
+      expenses:[
+        {id:'e5', title:'Pizza', emoji:'🍔', category:'comida', amount:1200, paidBy:'u2', date:'10/Jul/2026',
+         split:{u2:400,u6:400,u7:400}, paid:{u2:true,u6:false,u7:false}}
+      ]
+    }
+  ]
+};
+
+/* ---------- Utilidades ---------- */
+const $ = s => document.querySelector(s);
+const vp = () => $('#viewport');
+/* El signo va delante de la moneda: -RD$400.00, no RD$-400.00 */
+function money(n){
+  const v = Math.round((Number(n)||0)*100)/100;
+  return (v<0 ? '-' : '') + 'RD$' +
+    Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* Para buscar: sin acentos, sin mayúsculas y sin espacios de sobra.
+   Así "maria" encuentra a "María" y "PEREZ" a "Pérez". */
+const norm = s => String(s==null?'':s)
+  .normalize('NFD').replace(/[̀-ͯ]/g,'')
+  .toLowerCase().trim();
+const g = id => state.groups.find(x=>x.id===id);
+const person = id => PEOPLE[id] || {id, name:id, full:id, short:id};
+const nameOf = (id,gr) => id===ME ? person(id).short+' (Yo)' : person(id).short;
+const fullOf = id => person(id).full;
+const acct = id => ACCOUNTS.find(a=>a.id===id) || ACCOUNTS[0];
+const acctOf = gr => gr.accountId ? acct(gr.accountId) : null;
+const typeLabel = t => t==='gastos' ? 'Grupo para gastos' : t==='colecta' ? 'Colecta' : 'Pago recurrente';
+const catOf = id => CATEGORIES.find(c=>c.id===id) || CATEGORIES[9];
+const isAdmin = gr => gr.admins.includes(ME);
+/* Un acordeón vacío no se presenta desplegado. Si el usuario ya lo abrió
+   o cerró a mano, se respeta su decisión. */
+function accOpen(k, n){
+  const v = state.accordions[k];
+  return (v === undefined || v === null) ? n > 0 : v;
+}
+
+/* Balance por integrante: lo que puso − lo que le toca + lo que ya saldó.
+   Sin el tercer término un pago no movería el balance y la deuda quedaría viva. */
+function balances(gr){
+  const b = {}; gr.members.forEach(m=>b[m]=0);
+  (gr.expenses||[]).forEach(e=>{
+    if(b[e.paidBy]===undefined) b[e.paidBy]=0;
+    b[e.paidBy] += e.amount;
+    Object.entries(e.split).forEach(([u,v])=>{
+      if(b[u]===undefined) b[u]=0;
+      b[u] -= v;
+      if(u!==e.paidBy && e.paid[u]){        /* ya le pagó su parte a quien adelantó */
+        b[u] += v;
+        b[e.paidBy] -= v;
+      }
+    });
+  });
+  Object.keys(b).forEach(k=>b[k]=Math.round(b[k]*100)/100);
+  return b;
+}
+
+/* Lo que ese integrante aún debe dentro del grupo */
+function owedBy(gr, id){
+  if(gr.type==='colecta') return gr.contributions[id] ? 0 : gr.perPerson;
+  if(gr.type==='recurrente')
+    return round2((gr.periods||[]).filter(p=>!p.paid[id]).reduce((s,p)=>s+(p.split[id]||0),0));
+  return round2((gr.expenses||[])
+    .filter(e=>e.paidBy!==id && e.split[id] && !e.paid[id])
+    .reduce((s,e)=>s+e.split[id],0));
+}
+/* Lo que YO debo, gasto por gasto */
+function myDues(gr){
+  if(gr.type==='gastos'){
+    return (gr.expenses||[]).filter(e=>e.paidBy!==ME && e.split[ME]>0 && !e.paid[ME])
+      .map(e=>({gid:gr.id, id:e.id, title:e.title, amount:e.split[ME], to:e.paidBy, kind:'gasto'}));
+  }
+  if(gr.type==='colecta'){
+    return gr.contributions[ME] ? [] : [{gid:gr.id, id:'colecta', title:'Aporte a '+gr.name, amount:gr.perPerson, to:gr.owner, kind:'colecta'}];
+  }
+  if(gr.type==='recurrente'){
+    return (gr.periods||[]).filter(p=>!p.paid[ME] && p.split[ME]>0)
+      .map(p=>({gid:gr.id, id:p.id, title:gr.name+' — '+p.label, amount:p.split[ME], to:gr.owner, kind:'recurrente'}));
+  }
+  return [];
+}
+const allDues = () => state.groups.filter(x=>!x.archived && x.members.includes(ME)).flatMap(myDues);
+const totalDue = () => Math.round(allDues().reduce((s,d)=>s+d.amount,0)*100)/100;
+
+/* ---------- Navegación ---------- */
+function go(route, params, opt){
+  opt = opt||{};
+  if(!opt.replace && !opt.back) state.stack.push({route:state.route, params:state.params, tab:state.tab});
+  state.route = route; state.params = params||{}; state.modal=null;
+  if(params && params.tab) state.tab = params.tab;
+  render(opt.back?'enter-back':(opt.up?'enter-up':'enter'));
+}
+function back(){
+  if(typeof stopScan==='function') stopScan();
+  if(state.pay) state.pay.loading = false;      /* cancela un pago en curso */
+  const prev = state.stack.pop();
+  if(!prev){ state.route='home'; state.params={}; }
+  else { state.route=prev.route; state.params=prev.params; state.tab=prev.tab||state.tab; }
+  state.modal=null; render('enter-back');
+}
+function home(){ if(typeof stopScan==='function') stopScan();
+  if(state.pay) state.pay.loading = false; state.stack=[]; state.route='home'; state.params={}; state.modal=null; state.persona='admin'; render('enter-back'); }
+function openModal(m){ state.modal=m; state.modalShown=false; render(null,true); }
+function closeModal(){ state.modal=null; state.modalShown=false; render(null,true); }
+function toast(msg){
+  state.toast=msg; render(null,true);
+  clearTimeout(window.__tt); window.__tt=setTimeout(()=>{ state.toast=null; render(null,true); },2400);
+}
+
+/* ---------- Shell ---------- */
+/* Confetti minimalista: solo los dos colores de marca y pocas piezas.
+   La variación va en el movimiento (giro, deriva, duración), no en la paleta. */
+const CONFETTI_COLORS = ['#00709E','#ED8B00'];
+function confettiHtml(n){
+  n = n || 30;
+  let seed = 20260727, out = '';
+  const rnd = () => { seed = (seed*1664525 + 1013904223) >>> 0; return seed/4294967296; };
+  for(let i=0;i<n;i++){
+    const c = CONFETTI_COLORS[i % 2];               /* reparto parejo entre ambos */
+    const w = 6 + Math.round(rnd()*2);
+    const alto = rnd() > .45 ? w : Math.round(w*2.2);   /* cuadrito o tira */
+    const radio = rnd() > .75 ? '50%' : '1px';
+    const dur = (2.1 + rnd()*1.6).toFixed(2);
+    const delay = (rnd()*1.5).toFixed(2);
+    const dx = Math.round((rnd()-.5)*170);
+    const dist = 640 + Math.round(rnd()*260);
+    const rot = Math.round(360 + rnd()*720) * (rnd()>.5?1:-1);
+    out += '<b style="left:'+(rnd()*100).toFixed(2)+'%;width:'+w+'px;height:'+alto+'px'
+        + ';background:'+c+';border-radius:'+radio
+        + ';animation-duration:'+dur+'s;animation-delay:'+delay+'s'
+        + ';--dx:'+dx+'px;--dist:'+dist+'px;--rot:'+rot+'deg"></b>';
+  }
+  return '<div class="confetti" aria-hidden="true">'+out+'</div>';
+}
+
+function shell(o){
+  return '<div class="screen"'+(o.pay?' data-pay="1"':'')+'>'
+    + (o.overlay || '')
+    + '<div class="nav">'
+      + (o.leftHtml!==undefined ? o.leftHtml : (o.noBack?'<span></span>':'<button data-a="back" aria-label="Volver">'+I.back+'</button>'))
+      + '<h1>'+esc(o.title||'')+'</h1>'
+      + (o.right?'<span class="right">'+o.right+'</span>':'<span></span>')
+    + '</div>'
+    + '<div class="body" id="scrollBody">'+o.body+'</div>'
+    + (o.footer?'<div class="footer'+(o.borderFooter?' bordered':'')+'">'+o.footer+'</div>':'')
+  + '</div>';
+}
+
+/* ============================================================
+   PANTALLAS
+   ============================================================ */
+
+/* ---------- Dashboard ---------- */
+function scrHome(){
+  const due = totalDue();
+  const mine = state.groups.filter(x=>!x.archived && x.members.includes(ME));
+  const reqs = state.groups.filter(x=>isAdmin(x)).flatMap(x=>x.requests.map(r=>({...r, gid:x.id, gname:x.name})));
+  const pendingJoins = state.groups.filter(x=>x.pendingMe);
+
+  let body = '';
+  body += '<div class="card" style="margin:8px 0 16px;padding:16px">'
+    + '<div style="font-family:var(--font-display);font-size:16px;font-weight:500;color:#012169">Tu balance pendiente</div>'
+    + '<div style="font-family:var(--font-display);font-size:32px;font-weight:400;color:'+(due>0?'#555555':'#0E7C5A')+';margin:8px 0 4px">'+money(due)+'</div>'
+    + '<div class="small muted" style="margin-bottom:'+(due>0?'16px':'0')+'">'+(due>0? allDues().length+' pago(s) por realizar' : 'Estás al día. ¡Bien ahí!')+'</div>'
+    + (due>0?'<button class="btn btn-primary" data-a="payAll">Pagar balance total</button>':'')
+  + '</div>';
+
+  body += '<h2 class="t">¿Qué deseas hacer?</h2>';
+  body += '<div class="tiles">'
+    + '<button class="tile" data-a="newGroup"><span class="ic">'+I.users+'</span><span class="lbl">Crear un grupo</span></button>'
+    + '<button class="tile" data-a="joinQR"><span class="ic">'+I.qr+'</span><span class="lbl">Unirse a un grupo por QR</span></button>'
+    + '<button class="tile" data-a="myAccounts"><span class="ic">'+I.wallet+'</span><span class="lbl">Mis cuentas</span></button>'
+  + '</div>';
+
+  /* Grupos activos */
+  const abiertoActivos = accOpen('activos', mine.length);
+  body += '<button class="accordion'+(abiertoActivos?' open':'')+'" data-a="acc" data-k="activos">'
+    + '<span class="l">Grupos activos</span>'
+    + '<span class="r"><span class="badge '+(mine.length?'on':'')+'">'+mine.length+'</span>'
+    + '<span class="arrow">'+I.down+'</span></span></button>';
+  {
+    body += '<div class="acc-panel'+(abiertoActivos?' open':'')+'" data-acc="activos"><div class="inner">'
+      + '<div class="glist">';
+    if(!mine.length) body += '<div class="empty" style="padding:24px">Aún no tienes grupos activos.</div>';
+    mine.forEach(gr=>{
+      body += '<button class="gcard" data-a="openGroup" data-id="'+gr.id+'">'
+        + '<span class="avatar">'+gr.emoji+'</span>'
+        + '<span class="info"><span class="nm">'+esc(gr.name)+'</span><span class="mt">'+typeLabel(gr.type)+'</span></span>'
+        + '</button>';
+    });
+    body += '</div></div></div>';
+  }
+
+  /* Solicitudes pendientes */
+  const totalPend = reqs.length + pendingJoins.length;
+  const abiertoPend = accOpen('pendientes', totalPend);
+  body += '<button class="accordion'+(abiertoPend?' open':'')+'" data-a="acc" data-k="pendientes">'
+    + '<span class="l">Solicitudes pendientes</span>'
+    + '<span class="r"><span class="badge '+(totalPend?'on':'')+'">'+totalPend+'</span>'
+    + '<span class="arrow">'+I.down+'</span></span></button>';
+  {
+    body += '<div class="acc-panel'+(abiertoPend?' open':'')+'" data-acc="pendientes"><div class="inner">'
+      + '<div class="glist">';
+    if(!totalPend) body += '<div class="empty" style="padding:24px">No tienes solicitudes pendientes.</div>';
+    pendingJoins.forEach(gr=>{
+      body += '<button class="gcard" data-a="openPending" data-id="'+gr.id+'">'
+        + '<span class="avatar">'+gr.emoji+'</span>'
+        + '<span class="info"><span class="nm">'+esc(gr.name)+'</span><span class="mt">Esperando aprobación</span></span>'
+        + '<span class="pill pend">Pendiente</span></button>';
+    });
+    reqs.forEach(r=>{
+      body += '<div class="note-req">'
+        + '<div class="q"><b>'+esc(r.userName)+'</b> quiere unirse a “'+esc(r.gname)+'”.</div>'
+        + '<div class="acts">'
+          + '<button class="btn btn-soft btn-sm" data-a="rejectReq" data-gid="'+r.gid+'" data-rid="'+r.id+'">Rechazar</button>'
+          + '<button class="btn btn-primary btn-sm" data-a="approveReq" data-gid="'+r.gid+'" data-rid="'+r.id+'">Aprobar</button>'
+        + '</div></div>';
+    });
+    body += '</div></div></div>';
+  }
+
+  /* La sección solo existe si hay algo archivado */
+  const archivados = state.groups.filter(x=>x.archived && x.members.includes(ME));
+  if(archivados.length){
+    body += '<button class="btn btn-soft" data-a="goArchived" style="margin-top:24px">'
+      + 'Grupos archivados'
+      + '<span class="badge on">'+archivados.length+'</span></button>';
+  }
+
+  body += '<div class="hr"></div>'
+    + '<button class="card-btn plain" data-a="goSimulate"><span><span class="ttl">Simular invitación recibida</span>'
+    + '<span class="txt">Ver el prototipo desde el lado de quien recibe el enlace.</span></span>'
+    + '<span class="chev">'+I.chev+'</span></button>';
+
+  return shell({title:'Grupos de pago', noBack:true, body:body});
+}
+
+/* ---------- Escáner QR (cámara simulada) ---------- */
+function scrScan(){
+  const ok = state.scan==='detectado';
+  const gid = state.params.gid||'g1';
+  return '<div class="screen" data-scan="'+(ok?'ok':'buscando')+'">'
+    + '<div class="scan-feed">'
+      + '<div class="scene"></div>'
+      + '<div class="blob" style="width:200px;height:120px;background:#7A8794;left:-40px;bottom:96px"></div>'
+      + '<div class="blob" style="width:160px;height:160px;background:#5B6672;right:-48px;top:120px"></div>'
+      + '<div class="grain"></div>'
+      + '<div class="scan-target">'+qrHtml(gid)+'</div>'
+    + '</div>'
+    + '<div class="scan-frame"><b></b><b></b><b></b><b></b>'+(ok?'':'<i></i>')+'</div>'
+    + (ok?'<div class="scan-ok">'+I.checkBig+'</div>':'')
+    + '<div class="nav scan-nav">'
+      + '<button data-a="back" aria-label="Cerrar">'+I.close+'</button>'
+      + '<h1>Escanear código QR</h1><span></span></div>'
+    + '<div class="scan-hint">'
+      + (ok? 'Código detectado' : 'Coloca el código QR dentro del marco')
+      + '<span>'+(ok? 'Abriendo el grupo…' : 'Pídele a quien creó el grupo que te muestre su código.')+'</span></div>'
+    + (ok?'':'<div class="scan-actions">'
+      + '<button class="btn btn-primary" data-a="scanNow">Simular escaneo</button>'
+      + '<button class="btn btn-glass" data-a="back" style="margin-top:8px">Cancelar</button></div>')
+  + '</div>';
+}
+/* Detección automática: ~2.4s buscando, luego confirma y abre el grupo */
+function startScan(){
+  clearTimeout(window.__scanA); clearTimeout(window.__scanB);
+  window.__scanA = setTimeout(()=>{ if(state.route==='scan') scanDetect(); }, 2400);
+}
+function scanDetect(){
+  if(state.route!=='scan') return;
+  clearTimeout(window.__scanA); clearTimeout(window.__scanB);
+  state.scan='detectado'; render(null,true);
+  window.__scanB = setTimeout(()=>{
+    if(state.route!=='scan') return;
+    state.form={}; go('join',{gid:state.params.gid||'g1'},{replace:true});
+  }, 900);
+}
+function stopScan(){ clearTimeout(window.__scanA); clearTimeout(window.__scanB); }
+
+function scrArchived(){
+  const lista = state.groups.filter(x=>x.archived && x.members.includes(ME));
+  let b = '';
+  if(!lista.length){
+    b = '<div class="empty">Todavía no has archivado ningún grupo.<br>'
+      + 'Puedes archivar uno desde su pantalla de configuración.</div>';
+  } else {
+    b = '<p class="sub">Estos grupos ya no aparecen en tu dashboard. '
+      + 'Puedes abrirlos para consultarlos o reabrirlos desde su configuración.</p>'
+      + '<div class="glist">';
+    lista.forEach(gr=>{
+      b += '<button class="gcard" data-a="openGroup" data-id="'+gr.id+'">'
+        + '<span class="avatar">'+gr.emoji+'</span>'
+        + '<span class="info"><span class="nm">'+esc(gr.name)+'</span>'
+        + '<span class="mt">'+typeLabel(gr.type)+'</span></span>'
+        + '<span class="pill pend">Archivado</span></button>';
+    });
+    b += '</div>';
+  }
+  return shell({title:'Grupos archivados', body:b});
+}
+
+/* Escenarios de invitación, solo para demostrar el prototipo */
+function scrSimulate(){
+  const opt = (gid,t,d)=>'<button class="card-btn" data-a="simInvite" data-gid="'+gid+'">'
+    + '<span><span class="ttl">'+t+'</span><span class="txt">'+d+'</span></span>'
+    + '<span class="chev">'+I.chev+'</span></button>';
+  const b = '<p class="sub">Abre el prototipo como si otra persona recibiera el enlace del grupo. '
+      + 'Elige el escenario que quieras ver.</p>'
+    + opt('g1','El grupo aún no tiene nombres',
+          'Escribes tu nombre. Como el grupo pide aprobación, la solicitud queda pendiente para el administrador.')
+    + opt('g5','El administrador ya asignó los nombres',
+          'Eliges tu nombre de la lista, o pones uno propio si no aparece. Entras directo al grupo.');
+  return shell({title:'Simular invitación', body:b});
+}
+
+/* ---------- Mis cuentas ---------- */
+function scrMyAccounts(){
+  let b='<p class="sub">Estas son las cuentas que puedes usar para recibir o realizar pagos dentro de tus grupos.</p>'
+    + '<div class="acctlist">';
+  ACCOUNTS.forEach(a=>{
+    b += '<div class="acct-row" style="cursor:default"><span class="n">'+a.name+'</span>'
+      + '<span class="d">'+a.num+'<br>Disponible: '+money(a.avail)+'</span></div>';
+  });
+  b += '</div>';
+  b += '<div class="notice">'+I.warn+'<span>Cuentas de demostración. Este prototipo no se conecta con productos reales.</span></div>';
+  return shell({title:'Mis cuentas', body:b});
+}
+
+/* ---------- Tipo de grupo ---------- */
+function scrNewGroupType(){
+  const opt = (t,n,d)=>'<button class="card-btn" data-a="pickType" data-t="'+t+'"><span><span class="ttl">'+n+'</span><span class="txt">'+d+'</span></span><span class="chev">'+I.chev+'</span></button>';
+  const b = '<h2 class="t ui">Selecciona el tipo de grupo</h2>'
+    + '<p class="sub">Elige la opción que mejor se adapte a cómo quieren manejar los pagos.</p>'
+    + opt('gastos','Grupo para gastos','Agrega varios gastos y divide el balance entre los integrantes')
+    + opt('colecta','Colecta','Cada integrante aporta un monto definido')
+    + opt('recurrente','Pago recurrente','Divide un gasto que se repite, como internet o una suscripción');
+  return shell({title:'Nuevo grupo de pago', body:b});
+}
+
+/* Campo de monto con el prefijo RD$ siempre visible */
+function moneyField(o){
+  return '<div class="field money'+(o.inRow?'" style="margin:0':'')+'">'
+    + '<span class="lab">'+o.label+'</span>'
+    + '<span class="prefix">RD$</span>'
+    + '<input class="inp has-lab" inputmode="decimal" value="'+moneyInput(o.value)+'" '
+    + 'data-bind="'+o.bind+'" data-money="1" autocomplete="off">'
+  + '</div>';
+}
+
+/* Campo tipo select. El label solo flota cuando ya hay un valor;
+   si está vacío, el propio label hace de placeholder. */
+function selectField(o){
+  const hay = o.value != null && o.value !== '';
+  return '<button class="select-like"'
+    + (o.disabled ? ' disabled' : (o.action ? ' data-a="'+o.action+'"' : ''))
+    + (o.data ? ' '+o.data : '')
+    + (o.style ? ' style="'+o.style+'"' : '') + '>'
+    + (hay ? '<span class="lab">'+o.label+'</span>' : '')
+    + (hay ? '<span>'+o.value+'</span>' : '<span class="ph">'+o.label+'</span>')
+    + (o.icon || '')
+  + '</button>';
+}
+
+/* ---------- Bloque de participantes reutilizable ---------- */
+/* Participantes editables. El primero siempre soy yo y también puedo cambiar mi nombre. */
+function participantsBlock(){
+  const list = state.form.people || [];
+  let h = '<div class="section-title">Participantes</div>';
+  list.forEach(p=>{
+    /* La X está siempre disponible y solo borra el texto del campo */
+    h += '<div class="prow">'
+      + '<input class="pinput" data-person="'+p.id+'" value="'+esc(p.name)+'" '
+        + 'placeholder="Nombre del participante" autocomplete="off" spellcheck="false">'
+      + (p.id===ME
+          ? '<span class="tag-you">Yo</span>'
+          : '<button class="rm" data-a="clearMember" data-id="'+p.id+'" aria-label="Borrar">'+I.close+'</button>')
+      + '</div>';
+  });
+  h += '<button class="addrow" data-a="addMember">Agregar participante</button>';
+  return h;
+}
+function accountBlock(){
+  const f = state.form;
+  const a = f.accountId ? acct(f.accountId) : null;
+  return '<div class="section-title">Cuenta para recibir pagos:</div>'
+    + '<button class="acct" data-a="pickAccount" data-for="form">'
+      + (a? '<span><span class="n">'+a.name+'</span><span class="d">'+a.num+'<br>Disponible: '+money(a.avail)+'</span></span>'
+          : '<span class="n" style="color:var(--navy)">Seleccionar cuenta</span>')
+      + '<span class="chev">'+I.chev+'</span></button>';
+}
+
+/* ---------- Crear: grupo de gastos ---------- */
+function scrNewExpenseGroup(){
+  const f = state.form;
+  /* Sin cuenta: en este tipo se elige al crear cada gasto */
+  const ok = f.name && f.name.trim() && f.emoji;
+  let b = '<div class="type-chip"><span class="chip">Grupo para gastos</span></div>'
+    + '<div class="row">'
+      + '<div class="field" style="margin:0"><span class="lab">Nombre del grupo</span>'
+        + '<input class="inp has-lab" id="gname" placeholder="Ej. Viaje a Jarabacoa" value="'+esc(f.name||'')+'" data-bind="name"></div>'
+      + '<button class="emoji-btn" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
+    + '</div>'
+    + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px',
+        value: f.category ? catOf(f.category).e+' '+catOf(f.category).n : '', icon:I.down})
+    + participantsBlock();
+  return shell({title:'Nuevo grupo de pago', body:b,
+    footer:'<button class="btn btn-primary" data-a="createGroup" '+(ok?'':'disabled')+'>Crear grupo de pago</button>'});
+}
+
+/* ---------- Crear: colecta ---------- */
+function scrNewCollecta(){
+  const f = state.form;
+  const ok = f.name && f.name.trim() && f.emoji && Number(f.perPerson)>0 && f.deadline && f.accountId;
+  let b = '<div class="type-chip"><span class="chip">Colecta</span></div>'
+    + '<div class="row">'
+      + '<div class="field" style="margin:0"><span class="lab">Nombre del grupo</span>'
+        + '<input class="inp has-lab" placeholder="Ej. Regalo para Ana" value="'+esc(f.name||'')+'" data-bind="name"></div>'
+      + '<button class="emoji-btn" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
+    + '</div>'
+    + '<div class="section-title">Información del pago</div>'
+    + '<div class="row eq">'
+      + moneyField({label:'Monto por persona', bind:'perPerson', value:f.perPerson, inRow:true})
+      + selectField({action:'pickDate', data:'data-f="deadline"', label:'Fecha límite',
+          value:f.deadline||'', icon:I.cal})
+    + '</div>'
+    + accountBlock()
+    + participantsBlock();
+  return shell({title:'Nuevo grupo de pago', body:b,
+    footer:'<button class="btn btn-primary" data-a="createGroup" '+(ok?'':'disabled')+'>Crear grupo de pago</button>'});
+}
+
+/* ---------- Crear: pago recurrente ---------- */
+function scrNewRecurrent(){
+  const f = state.form;
+  const ok = f.name && f.name.trim() && f.emoji && Number(f.amount)>0 && f.payDay && f.accountId;
+  let b = '<div class="type-chip"><span class="chip">Pago recurrente</span></div>'
+    /* 32 y no 16: el label flotante del campo se come parte de la separación */
+    + '<div class="notice" style="margin-bottom:32px">'+I.warn
+      + '<span>Los pagos se dividirán en partes iguales por defecto. '
+      + 'Después de crear el grupo, podrás ajustar los montos.</span></div>'
+    + '<div class="row">'
+      + '<div class="field" style="margin:0"><span class="lab">Nombre del grupo</span>'
+        + '<input class="inp has-lab" placeholder="Ej. Internet apartamento" value="'+esc(f.name||'')+'" data-bind="name"></div>'
+      + '<button class="emoji-btn" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
+    + '</div>'
+    + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px',
+        value: f.category ? catOf(f.category).e+' '+catOf(f.category).n : '', icon:I.down})
+    + '<div class="section-title">Información del pago</div>'
+    /* El monto va completo arriba; frecuencia y día de pago comparten la fila */
+    + moneyField({label:'Monto del pago', bind:'amount', value:f.amount})
+    + '<div class="row eq">'
+      + selectField({label:'Frecuencia', value:'Mensual', disabled:true})
+      + selectField({action:'pickDayOfMonth', label:'Día de pago',
+          value: f.payDay ? f.payDay+' cada mes' : '', icon:I.cal})
+    + '</div>'
+    + accountBlock()
+    + participantsBlock();
+  return shell({title:'Nuevo grupo de pago', body:b,
+    footer:'<button class="btn btn-primary" data-a="createGroup" '+(ok?'':'disabled')+'>Crear grupo de pago</button>'});
+}
+
+/* ---------- Éxito de creación + compartir ---------- */
+function scrCreated(){
+  const gr = g(state.params.gid);
+  if(!gr) return scrHome();
+  const dir = gr.perms.join==='enlace';
+  const b = '<div class="success">'
+    + '<h2>¡Grupo de pago creado con éxito!</h2>'
+    + '<div class="tick">'+I.checkBig+'</div>'
+    + '<div class="qrcard">'
+      + '<div class="lead">Invita a otras personas para que se unan a este grupo</div>'
+      + '<div class="qt">Código QR del grupo</div>'
+      + qrHtml(gr.id)
+      + '<button class="btn btn-soft" data-a="shareModal" data-id="'+gr.id+'">Compartir enlace '+I.share+'</button>'
+      + '<div class="small muted" style="margin-top:16px;line-height:1.45">'
+        + (dir? 'Las personas con este enlace podrán unirse directamente al grupo.'
+              : 'Las personas con este enlace deberán solicitar acceso al grupo.') + '</div>'
+    + '</div></div>';
+  return shell({title:'', noBack:true, body:b, overlay:confettiHtml(),
+    footer:'<button class="btn btn-primary" data-a="openGroupReplace" data-id="'+gr.id+'">Continuar</button>'});
+}
+
+/* QR decorativo determinista */
+function qrHtml(seed){
+  const N=25; let s=0; for(let i=0;i<String(seed).length;i++) s=(s*31+String(seed).charCodeAt(i))>>>0;
+  const rnd=()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; };
+  const finder=(r,c)=>{
+    const inTL=r<7&&c<7, inTR=r<7&&c>=N-7, inBL=r>=N-7&&c<7;
+    if(!(inTL||inTR||inBL)) return null;
+    const rr = inBL? r-(N-7) : r, cc = inTR? c-(N-7) : c;
+    const ring = (rr===0||rr===6||cc===0||cc===6);
+    const core = (rr>=2&&rr<=4&&cc>=2&&cc<=4);
+    return ring||core;
+  };
+  let cells='';
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+    const f=finder(r,c);
+    const on = f===null ? rnd()>0.52 : f;
+    cells += '<span class="'+(on?'':'o')+'"></span>';
+  }
+  return '<div class="qr" style="grid-template-columns:repeat('+N+',1fr);grid-template-rows:repeat('+N+',1fr)">'+cells+'</div>';
+}
+
+/* ---------- Detalle de grupo ---------- */
+function scrGroup(){
+  const gr = g(state.params.gid);
+  if(!gr) return scrHome();
+  if(gr.pendingMe) return scrPendingGroup(gr);
+  /* El administrador ve cuántas solicitudes le esperan sin entrar a configurar */
+  const solicitudes = isAdmin(gr) ? gr.requests.length : 0;
+  const right = '<button class="with-dot" data-a="config" data-id="'+gr.id+'" '
+    + 'aria-label="Configurar grupo'+(solicitudes?', '+solicitudes+' solicitud(es) pendiente(s)':'')+'">'
+    + I.gear
+    + (solicitudes ? '<span class="dot-count">'+solicitudes+'</span>' : '')
+  + '</button>';
+  let b = '<div class="hero"><div class="em">'+gr.emoji+'</div><h2>'+esc(gr.name)+'</h2>'
+        + '<span class="chip">'+typeLabel(gr.type)+'</span></div>';
+
+  if(gr.type==='gastos'){
+    b += '<div class="tabs">'
+      + '<button class="'+(state.tab==='gastos'?'on':'')+'" data-a="tab" data-t="gastos">Gastos</button>'
+      + '<button class="'+(state.tab==='balances'?'on':'')+'" data-a="tab" data-t="balances">Balances</button></div>';
+    if(state.tab==='gastos'){
+      b += '<div style="padding-top:16px">';
+      if(!gr.expenses.length) b += '<div class="empty">No hay gastos en este momento.</div>';
+      gr.expenses.forEach(e=>{
+        const mine = e.split[ME]||0;
+        const st = e.paidBy===ME ? '<span class="pill paid">Tú pagaste</span>'
+                 : (mine<=0 ? ''                                    /* no participo en este gasto */
+                 : (e.paid[ME] ? '<span class="pill paid">Pagado</span>'
+                               : '<span class="pill due">Debes '+money(mine)+'</span>'));
+        /* La fecha sube a la esquina para no recargar la línea de "Pagado por" */
+        b += '<button class="expcard" data-a="openExpense" data-gid="'+gr.id+'" data-eid="'+e.id+'">'
+          + '<span class="avatar">'+(e.emoji||catOf(e.category).e)+'</span>'
+          + '<span class="info"><span class="t">'+esc(e.title)+'</span>'
+          + '<span class="s">Pagado por <b>'+esc(nameOf(e.paidBy))+'</b></span>'
+          + (st ? '<span style="display:block;margin-top:8px">'+st+'</span>' : '')+'</span>'
+          + '<span class="r"><span class="date">'+e.date+'</span>'
+          + '<span class="amt">'+money(e.amount)+'</span></span></button>';
+      });
+      b += '</div>';
+    } else {
+      const bal = balances(gr);
+      const my = bal[ME]||0;
+      const pendientes = myDues(gr);
+      const porPagar = round2(pendientes.reduce((s,d)=>s+d.amount,0));
+      b += '<div style="padding-top:16px">'
+        /* Si tengo pagos pendientes, la tarjeta abre el flujo de pago */
+        + (porPagar > 0
+            ? '<button class="totalcard tap" data-a="payGroup" data-gid="'+gr.id+'">'
+              + '<span class="k">Monto a pagar</span>'
+              + '<span class="v">'+money(porPagar)+'</span>'
+              + '<span class="go">Pagar '+I.chev+'</span></button>'
+            : '<div class="totalcard"><div class="k">'+(my<0?'Monto a pagar':'Te deben')+'</div>'
+              + '<div class="v">'+money(Math.abs(my))+'</div></div>')
+        + '<div class="section-title">Balances</div>';
+      gr.members.forEach(m=>{
+        const v = bal[m]||0;
+        /* El administrador puede tocar a quien debe para registrarle un pago externo */
+        const tap = isAdmin(gr) && owedBy(gr, m) > 0;
+        b += (tap ? '<button class="balrow tap" data-a="memberOptions" data-gid="'+gr.id+'" data-id="'+m+'">'
+                  : '<div class="balrow">')
+          + '<span class="ava-ic">'+I.avatar+'</span>'
+          + '<span class="who"><span class="a">'+esc(nameOf(m))+'</span><span class="b">'+esc(fullOf(m))+'</span></span>'
+          + '<span class="amt '+(v>0?'pos':(v<0?'neg':'zero'))+'">'+(v>0?'+':'')+money(v)+'</span>'
+          + (tap ? '</button>' : '</div>');
+      });
+      b += '</div>';
+    }
+    const canAdd = gr.perms.addExpense==='todos' || (gr.perms.addExpense==='admins'&&isAdmin(gr)) || (gr.perms.addExpense==='dueno'&&gr.owner===ME);
+    return shell({title:'Grupo de pago', right:right, body:b,
+      footer: canAdd
+        ? '<button class="btn btn-primary" data-a="addExpense" data-gid="'+gr.id+'">Agregar gasto '+I.plus+'</button>'
+        : '<button class="btn" disabled>Solo los administradores pueden agregar gastos</button>',
+      borderFooter:true});
+  }
+
+  if(gr.type==='colecta'){
+    const paidN = gr.members.filter(m=>gr.contributions[m]).length;
+    const total = gr.perPerson*gr.members.length;
+    b += '<div class="tabs">'
+      + '<button class="'+(state.tab==='gastos'?'on':'')+'" data-a="tab" data-t="gastos">Información</button>'
+      + '<button class="'+(state.tab==='balances'?'on':'')+'" data-a="tab" data-t="balances">Aportes</button></div>';
+    if(state.tab==='gastos'){
+      b += '<div style="padding-top:16px">'
+        + '<div class="totalcard"><div class="k">Monto por persona</div><div class="v">'+money(gr.perPerson)+'</div>'
+        + '<div class="n">Fecha límite: '+gr.deadline+'</div></div>'
+        + '<div class="card" style="margin-top:16px">'
+          + '<div class="info-line"><span class="k">Recaudado</span><span class="v">'+money(gr.perPerson*paidN)+'</span></div>'
+          + '<div class="info-line"><span class="k">Meta estimada</span><span class="v">'+money(total)+'</span></div>'
+          + '<div class="info-line"><span class="k">Han aportado</span><span class="v">'+paidN+' de '+gr.members.length+'</span></div>'
+          + '<div class="info-line"><span class="k">Cuenta receptora</span><span class="v">'+acct(gr.accountId).name+'</span></div>'
+        + '</div>'
+        + '<div style="margin-top:16px;height:10px;border-radius:5px;background:#EEF1F5;overflow:hidden">'
+        + '<div style="height:100%;width:'+Math.round(paidN/gr.members.length*100)+'%;background:var(--orange);border-radius:5px;transition:width .4s"></div></div>'
+      + '</div>';
+    } else {
+      b += '<div style="padding-top:16px">';
+      gr.members.forEach(m=>{
+        const tap = isAdmin(gr) && !gr.contributions[m];
+        b += (tap ? '<button class="balrow tap" data-a="memberOptions" data-gid="'+gr.id+'" data-id="'+m+'">'
+                  : '<div class="balrow">')
+          + '<span class="ava-ic">'+I.avatar+'</span>'
+          + '<span class="who"><span class="a">'+esc(nameOf(m))+'</span><span class="b">'+esc(fullOf(m))+'</span></span>'
+          + (gr.contributions[m]?'<span class="pill paid">Aportó</span>':'<span class="pill due">Pendiente</span>')
+          + (tap ? '</button>' : '</div>');
+      });
+      b += '</div>';
+    }
+    return shell({title:'Grupo de pago', right:right, body:b,
+      footer: !gr.members.includes(ME) ? ''
+        : gr.contributions[ME]
+          ? '<button class="btn" disabled>Ya realizaste tu aporte</button>'
+          : '<button class="btn btn-primary" data-a="payItem" data-gid="'+gr.id+'" data-kind="colecta" data-id="colecta">Pagar mi aporte · '+money(gr.perPerson)+'</button>',
+      borderFooter:gr.members.includes(ME)});
+  }
+
+  /* Recurrente */
+  b += '<div class="tabs">'
+    + '<button class="'+(state.tab==='gastos'?'on':'')+'" data-a="tab" data-t="gastos">Información</button>'
+    + '<button class="'+(state.tab==='balances'?'on':'')+'" data-a="tab" data-t="balances">Balances</button></div>';
+  if(state.tab==='gastos'){
+    b += '<div style="padding-top:16px">'
+      + '<div class="totalcard"><div class="k">Monto</div><div class="v">'+money(gr.amount)+'</div>'
+      + '<div class="n">'+gr.payDay+' de cada mes · '+gr.frequency.toLowerCase()+'</div></div>'
+      + '<div class="section-title">Pagos pendientes</div>';
+    const pend = gr.periods.filter(p=>gr.members.some(m=>!p.paid[m]));
+    if(!pend.length) b += '<div class="empty" style="padding:24px">No hay períodos pendientes.</div>';
+    pend.forEach(p=>{
+      b += '<button class="expcard" data-a="openPeriod" data-gid="'+gr.id+'" data-pid="'+p.id+'">'
+        + '<span class="info"><span class="t">'+esc(p.label)+'</span>'
+        + '<span class="s">Vence '+p.due+' · tu parte '+money(p.split[ME]||0)+'</span>'
+        + '<span style="display:block;margin-top:8px">'+(p.paid[ME]?'<span class="pill paid">Pagado</span>':'<span class="pill due">Pendiente</span>')+'</span></span>'
+        + '<span class="chev">'+I.chev+'</span></button>';
+    });
+    b += '</div>';
+  } else {
+    b += '<div style="padding-top:16px"><div class="section-title" style="margin-top:0">División por integrante</div>';
+    gr.members.forEach(m=>{
+      const p = gr.periods[0];
+      b += '<div class="balrow"><span class="ava-ic">'+I.avatar+'</span>'
+        + '<span class="who"><span class="a">'+esc(nameOf(m))+'</span><span class="b">'+esc(fullOf(m))+'</span></span>'
+        + '<span class="amt zero" style="color:#37424F">'+money(p.split[m]||0)+'</span></div>';
+    });
+    if(isAdmin(gr)) b += '<button class="btn btn-ghost btn-md" data-a="adjustSplit" data-gid="'+gr.id+'" style="margin-top:8px">Ajustar montos</button>';
+    b += '</div>';
+  }
+  return shell({title:'Grupo de pago', right:right, body:b, borderFooter:true,
+    footer:'<button class="btn btn-soft" data-a="shareModal" data-id="'+gr.id+'">Compartir grupo '+I.share+'</button>'});
+}
+
+/* Grupo con solicitud pendiente (vista bloqueada) */
+function scrPendingGroup(gr){
+  const b = '<div class="locked"><div class="ic">'+I.clock+'</div>'
+    + '<h2 class="t" style="font-size:22px">Solicitud enviada</h2>'
+    + '<p class="sub" style="margin-top:8px">El administrador debe aprobar tu solicitud antes de que puedas ver y participar en el grupo.</p>'
+    + '<div class="card" style="text-align:left"><div class="info-line"><span class="k">Grupo</span><span class="v">'+esc(gr.name)+'</span></div>'
+    + '<div class="info-line"><span class="k">Tipo</span><span class="v">'+typeLabel(gr.type)+'</span></div>'
+    + '<div class="info-line"><span class="k">Estado</span><span class="v" style="color:#8A5B10">Pendiente de aprobación</span></div></div>'
+    + '<div class="notice" style="margin-top:16px;text-align:left">'+I.lock+'<span>Mientras tu solicitud esté pendiente no puedes ver gastos, miembros ni montos del grupo.</span></div>'
+    + '</div>';
+  return shell({title:'Grupo de pago', body:b, footer:'<button class="btn btn-soft" data-a="home">Volver al dashboard</button>'});
+}
+
+/* ---------- Agregar gasto ---------- */
+function scrAddExpense(){
+  const gr = g(state.params.gid); if(!gr) return scrHome();
+  const f = state.form;
+  const amt = Number(f.amount)||0;
+  const chosen = f.who || {};
+  const activos = gr.members.filter(m=>chosen[m]);
+  /* La cuenta solo aplica si yo adelanté el dinero: es donde me reembolsan */
+  const yoPague = (f.paidBy||ME) === ME;
+  const ok = f.title && f.title.trim() && amt>0 && f.date && activos.length>0 && (!yoPague || f.accountId);
+
+  let b = '<div class="row">'
+      + '<div class="field" style="margin:0"><input class="inp" placeholder="Título del gasto" value="'+esc(f.title||'')+'" data-bind="title"></div>'
+      + '<button class="emoji-btn" data-a="pickCategory">'+(f.category?catOf(f.category).e:I.smile)+'</button></div>'
+    + moneyField({label:'Monto del gasto', bind:'amount', value:f.amount})
+    + '<div class="row eq">'
+      + selectField({action:'pickPayer', label:'Pagado por', value:esc(nameOf(f.paidBy||ME)), icon:I.down})
+      + selectField({action:'pickDate', data:'data-f="date"', label:'Cuándo', value:f.date||'', icon:I.cal})
+    + '</div>'
+    + (yoPague ? accountBlock2(gr) : '')
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin:24px 0 8px">'
+      + '<span class="section-title" style="margin:0">División</span>'
+      + '<button class="btn btn-primary btn-xs" data-a="pickSplit">'+(f.splitMode==='montos'?'Montos personalizados':'Partes iguales')+' '+I.down+'</button></div>'
+    + '<div class="splitbox">';
+  const reparto = splitAmounts(gr);
+  gr.members.forEach(m=>{
+    const on = !!chosen[m];
+    const val = on ? (reparto[m]||0) : 0;
+    const fijo = !!(f.locked && f.locked[m]);
+    b += '<div class="splitrow" data-a="toggleWho" data-id="'+m+'">'
+      + '<span class="cb '+(on?'on':'')+'">'+(on?I.check:'')+'</span>'
+      + '<span class="nm">'+esc(nameOf(m))+'</span>'
+      + (f.splitMode==='montos' && on
+          ? '<input class="splitmini'+(fijo?'':' auto')+'" inputmode="decimal" value="'+moneyInput(val)+'" data-custom="'+m+'">'
+          : '<span class="val">'+money(val)+'</span>')
+      + '</div>';
+  });
+  b += '</div>';
+  if(f.splitMode==='montos'){
+    const sum = round2(activos.reduce((s,m)=>s+(reparto[m]||0),0));
+    const diff = round2(amt - sum);
+    const hayFijos = activos.some(m=>f.locked && f.locked[m]);
+    b += '<div class="splitnote">'
+      + '<span>Asignado '+money(sum)+' de '+money(amt)+'. '
+      + (Math.abs(diff)<0.01 ? '✓ Cuadra.' : (diff>0 ? 'Faltan '+money(diff)+'.' : 'Sobran '+money(-diff)+'.'))
+      + '</span>'
+      + (hayFijos ? '<button class="btn btn-soft btn-xs" data-a="resetSplit">Restablecer</button>' : '')
+    + '</div>';
+  }
+  return shell({title:'Agregar gasto', leftHtml:'<span></span>',
+    right:'<button data-a="back" aria-label="Cerrar">'+I.close+'</button>', body:b,
+    footer:'<button class="btn btn-primary" data-a="saveExpense" data-gid="'+gr.id+'" '+(ok?'':'disabled')+'>Crear gasto</button>'});
+}
+function accountBlock2(gr){
+  const a = state.form.accountId ? acct(state.form.accountId) : null;
+  return '<div class="section-title">Cuenta para recibir pagos:</div>'
+    + '<button class="acct" data-a="pickAccount" data-for="form">'
+      + (a? '<span><span class="n">'+a.name+'</span><span class="d">'+a.num+'<br>Disponible: '+money(a.avail)+'</span></span>'
+          : '<span class="n" style="color:var(--navy)">Seleccionar cuenta</span>')
+      + '<span class="chev">'+I.chev+'</span></button>';
+}
+const round2 = n => Math.round((Number(n)||0)*100)/100;
+
+/* Reparto del gasto. En "montos personalizados", lo que el usuario fija a mano
+   queda intacto y el resto se divide entre los demás. */
+function splitAmounts(gr){
+  const f = state.form;
+  const amt = round2(f.amount);
+  const act = gr.members.filter(m => f.who && f.who[m]);
+  const res = {};
+  if(!act.length) return res;
+
+  const enPartes = (gente, total) => {
+    const per = round2(total / gente.length);
+    gente.forEach((m,i)=> res[m] = i===gente.length-1 ? round2(total - per*(gente.length-1)) : per);
+  };
+  if(f.splitMode !== 'montos'){ enPartes(act, amt); return res; }
+
+  const fijos  = act.filter(m => f.locked && f.locked[m]);
+  const libres = act.filter(m => !(f.locked && f.locked[m]));
+  let usado = 0;
+  fijos.forEach(m=>{ res[m] = round2((f.custom||{})[m] || 0); usado += res[m]; });
+  if(libres.length) enPartes(libres, Math.max(round2(amt - usado), 0));
+  return res;
+}
+/* Lo que se ve dentro del campo de monto: solo el número, sin "RD$".
+   No fuerza decimales para no estorbar mientras se escribe. */
+/* Deja solo dígitos y un punto, con dos decimales como máximo */
+function sanitizeMoney(v){
+  let s = String(v==null?'':v).replace(/[^0-9.]/g,'');
+  const i = s.indexOf('.');
+  if(i>=0) s = s.slice(0,i+1) + s.slice(i+1).replace(/\./g,'');
+  const p = s.split('.');
+  if(p[1]!==undefined) s = p[0] + '.' + p[1].slice(0,2);
+  return s;
+}
+function moneyInput(v){
+  const s = String(v==null?'':v);
+  if(!s) return '';
+  const p = s.split('.');
+  const ent = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return p.length>1 ? ent+'.'+p[1] : ent;
+}
+
+/* ---------- Detalle de gasto ---------- */
+function scrExpense(){
+  const gr = g(state.params.gid); if(!gr) return scrHome();
+  const e = gr.expenses.find(x=>x.id===state.params.eid); if(!e) return scrGroup();
+  const mine = e.split[ME]||0;
+  const iPaid = e.paidBy===ME || e.paid[ME];
+  let b = '<div class="hero"><div class="em">'+(e.emoji||catOf(e.category).e)+'</div><h2>'+esc(e.title)+'</h2>'
+    + '<div class="small muted">'+e.date+' · '+catOf(e.category).n+'</div></div>'
+    + '<div class="totalcard" style="margin-top:16px"><div class="k">Monto del gasto</div><div class="v">'+money(e.amount)+'</div>'
+    + '<div class="n">Pagado por '+esc(nameOf(e.paidBy))+'</div></div>'
+    + '<div class="section-title">Dividido entre</div>';
+  Object.entries(e.split).forEach(([m,v])=>{
+    const st = m===e.paidBy ? '<span class="pill paid">Pagó</span>' : (e.paid[m]?'<span class="pill paid">Pagado</span>':'<span class="pill due">Pendiente</span>');
+    b += '<div class="balrow"><span class="ava-ic">'+I.avatar+'</span>'
+      + '<span class="who"><span class="a">'+esc(nameOf(m))+'</span><span class="b">'+esc(fullOf(m))+'</span></span>'
+      + '<span style="text-align:right"><span class="amt zero" style="display:block;color:#37424F">'+money(v)+'</span>'
+      + '<span style="display:block;margin-top:4px">'+st+'</span></span></div>';
+  });
+  /* Sin parte en el gasto no hay nada que pagar: no se muestra el botón */
+  const participo = e.paidBy===ME || mine>0;
+  let pie = '';
+  if(participo){
+    pie = iPaid
+      ? '<button class="btn" disabled>'+(e.paidBy===ME?'Tú pagaste este gasto':'Ya pagaste tu parte')+'</button>'
+      : '<button class="btn btn-primary" data-a="payItem" data-gid="'+gr.id+'" data-kind="gasto" data-id="'+e.id+'">Pagar mi parte · '+money(mine)+'</button>';
+  }
+  return shell({title:'Gasto', body:b, borderFooter:participo, footer:pie});
+}
+
+/* ---------- Período recurrente ---------- */
+function scrPeriod(){
+  const gr = g(state.params.gid); if(!gr) return scrHome();
+  const p = gr.periods.find(x=>x.id===state.params.pid); if(!p) return scrGroup();
+  let b = '<div class="hero"><div class="em">'+gr.emoji+'</div><h2>'+esc(gr.name)+'</h2><span class="chip">'+esc(p.label)+'</span></div>'
+    + '<div class="totalcard" style="margin-top:16px"><div class="k">Tu parte</div><div class="v">'+money(p.split[ME]||0)+'</div>'
+    + '<div class="n">Monto total del período: '+money(gr.amount)+'</div></div>'
+    + '<div class="card" style="margin-top:16px">'
+      + '<div class="info-line"><span class="k">Período</span><span class="v">'+esc(p.label)+'</span></div>'
+      + '<div class="info-line"><span class="k">Fecha límite</span><span class="v">'+p.due+'</span></div>'
+      + '<div class="info-line"><span class="k">Frecuencia</span><span class="v">'+gr.frequency+'</span></div>'
+      + '<div class="info-line"><span class="k">Estado</span><span class="v">'+(p.paid[ME]?'<span class="pill paid">Pagado</span>':'<span class="pill due">Pendiente</span>')+'</span></div>'
+    + '</div>'
+    + '<div class="section-title">Integrantes</div>';
+  gr.members.forEach(m=>{
+    b += '<div class="balrow"><span class="ava-ic">'+I.avatar+'</span>'
+      + '<span class="who"><span class="a">'+esc(nameOf(m))+'</span><span class="b">'+esc(fullOf(m))+'</span></span>'
+      + '<span style="text-align:right"><span class="amt zero" style="display:block;color:#37424F">'+money(p.split[m]||0)+'</span>'
+      + '<span style="display:block;margin-top:4px">'+(p.paid[m]?'<span class="pill paid">Pagado</span>':'<span class="pill due">Pendiente</span>')+'</span></span></div>';
+  });
+  const miParte = p.split[ME]||0;
+  let pie = '';
+  if(miParte > 0){
+    pie = p.paid[ME]
+      ? '<button class="btn" disabled>Ya pagaste este período</button>'
+      : '<button class="btn btn-primary" data-a="payItem" data-gid="'+gr.id+'" data-kind="recurrente" data-id="'+p.id+'">Pagar mi parte · '+money(miParte)+'</button>';
+  }
+  return shell({title:'Pago recurrente', body:b, borderFooter:!!pie, footer:pie});
+}
+
+/* ============================================================
+   PAGOS
+   ============================================================ */
+function scrPay(){
+  const p = state.pay;
+  const a = p.accountId ? acct(p.accountId) : null;
+  const items = p.items||[];
+  let b = '<div class="totalcard" style="margin:8px 0 16px"><div class="k">Monto a pagar</div><div class="v">'+money(p.total)+'</div></div>';
+  if(items.length>1 || p.multi){
+    b += '<div class="section-title">Gastos incluidos</div><div class="paylist">';
+    items.forEach(it=>{
+      const gr = g(it.gid);
+      b += '<div class="prow-pay"><span class="t"><b>'+esc(it.title)+'</b>'
+        + (gr ? '<i>'+esc(gr.name)+'</i>' : '')+'</span>'
+        + '<span class="m">'+money(it.amount)+'</span></div>';
+    });
+    b += '</div>'
+      + '<div class="paytotal"><span class="k">Total</span><span class="v">'+money(p.total)+'</span></div>';
+  } else if(items[0]){
+    b += '<div class="card"><div class="info-line"><span class="k">Motivo</span><span class="v">'+esc(items[0].title)+'</span></div>'
+       + '<div class="info-line"><span class="k">Se le paga a</span><span class="v">'+esc(nameOf(items[0].to))+'</span></div></div>';
+  }
+  b += '<div class="section-title">Desde:</div>'
+    + '<button class="acct" data-a="pickAccount" data-for="pay">'
+      + (a? '<span><span class="n">'+a.name+'</span><span class="d">'+a.num+'<br>Disponible: '+money(a.avail)+'</span></span>'
+          : '<span class="n" style="color:var(--navy)">Seleccionar cuenta</span>')
+      + '<span class="chev">'+I.chev+'</span></button>';
+  return shell({title:'Pagar gasto', body:b,
+    footer:'<button class="btn btn-primary" data-a="payReview" '+(a?'':'disabled')+'>Continuar</button>'});
+}
+function payRows(p, a, tax, conHora){
+  const cuenta = a.name + '<br>' + (conHora ? '*****'+a.num.slice(-4) : a.num);
+  const fila = (k,v)=>'<div class="payrow"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';
+  return '<div class="pay-rows">'
+    + fila('Desde:', cuenta)
+    + fila('Fecha:', p.fecha + (conHora ? ' - 3:02 p.m.' : ''))
+    + fila('Impuesto DGII 0.20%:', money(tax))
+    + fila('Motivo:', esc(p.motivo))
+  + '</div>';
+}
+function scrPayConfirm(){
+  const p = state.pay, a = acct(p.accountId), tax = round2(p.total*0.002);
+  let b = '<div class="paycard">'
+      + '<div class="pay-kicker">VERIFICACIÓN</div>'
+      + '<div class="pay-amount">'+money(p.total)+'</div>'
+      + payRows(p, a, tax, false)
+    + '</div>';
+  /* Los botones acompañan al contenido: no van anclados al fondo */
+  b += '<div class="pay-actions">'
+    + '<div class="notice" style="margin-bottom:16px">'+I.warn
+      + '<span>Al transferir, confirmas que verificaste que el monto es correcto. '
+      + 'La transferencia es inmediata y no se puede cancelar.</span></div>'
+    + '<button class="btn btn-primary" data-a="payDo">Sí, pagar</button>'
+  + '</div>';
+  /* El overlay tapa la pantalla mientras se procesa y bloquea cualquier toque */
+  return shell({title:'Pagar gasto', pay:true, body:b})
+    + (p.loading ? '<div class="loader-scrim"><div class="loader-box"><span class="loader"></span></div></div>' : '');
+}
+function scrReceipt(){
+  const p = state.pay, a = acct(p.accountId), tax = round2(p.total*0.002);
+  let b = '<div class="paycard">'
+      + '<div class="pay-ic">'+I.checkCircle+'</div>'
+      + '<div class="pay-kicker">COMPROBANTE</div>'
+      + '<div class="pay-amount">'+money(p.total)+'</div>'
+      + '<span class="pay-pill">Tu pago ha sido realizado</span>'
+      + payRows(p, a, tax, true)
+    + '</div>';
+  b += '<div class="pay-actions">'
+    + '<button class="btn btn-primary" data-a="home">Ir a mis productos</button>'
+    + '<button class="btn btn-soft" data-a="payDone" style="margin-top:8px">Continuar</button>'
+  + '</div>';
+  return shell({title:'Pagar gasto', pay:true, noBack:true,
+    right:'<button data-a="shareReceipt" aria-label="Compartir comprobante">'+I.share+'</button>',
+    body:b});
+}
+
+/* ---------- Registrar pago externo ---------- */
+/* Pantalla de éxito del registro manual */
+function scrExternalOk(){
+  const e = state.ext || {};
+  const gr = g(e.gid);
+  const b = '<div class="extok">'
+    + I.checkCircleNavy
+    + '<div class="msg">¡Pago registrado con éxito!</div>'
+    + '<div class="membercard"><span class="ava-ic">'+I.avatar+'</span>'
+      + '<span class="nm">'+esc(person(e.memberId).short)+'</span>'
+      + '<span class="amt">'+money(e.amount)+'</span></div>'
+    + '<div class="method">'+esc(METODOS[e.method]||'')+'</div>'
+  + '</div>';
+  return shell({title:'', noBack:true, body:b,
+    footer:'<button class="btn btn-primary" data-a="externalDone" data-gid="'+(gr?gr.id:'')+'">Continuar</button>'});
+}
+
+/* ============================================================
+   CONFIGURACIÓN
+   ============================================================ */
+function scrConfig(){
+  const gr = g(state.params.gid); if(!gr) return scrHome();
+  const LBL_ADD={dueno:'Solo el dueño del grupo',admins:'Solo los administradores',todos:'Todos los miembros'};
+  const LBL_JOIN={enlace:'Cualquiera con el enlace',aprobacion:'Requiere aprobación'};
+  const LBL_INV={todos:'Todos los miembros',admins:'Solo administradores'};
+  const row=(a,ic,t,v)=>'<button class="card-btn plain" data-a="'+a+'" data-gid="'+gr.id+'"><span style="display:flex;align-items:center;gap:16px">'
+    +'<span style="color:var(--navy)">'+ic+'</span><span><span class="ttl" style="color:#37424F;font-size:16px">'+t+'</span>'
+    +(v?'<span class="txt">'+v+'</span>':'')+'</span></span><span class="chev">'+I.chev+'</span></button>';
+  let b = row('cfgAdmins',I.shield,'Administradores', gr.admins.map(m=>nameOf(m)).join(', '))
+    + row('cfgAdd',I.cash,'Quién puede agregar gastos', LBL_ADD[gr.perms.addExpense])
+    + row('cfgJoin',I.addu,'Quién puede unirse', LBL_JOIN[gr.perms.join])
+    + row('cfgInvite',I.invite,'Quién puede invitar', LBL_INV[gr.perms.invite])
+    + row('cfgAccount',I.wallet,'Cuenta predeterminada para recibir pagos',
+        acctOf(gr) ? acctOf(gr).name+' · '+acctOf(gr).num : 'Se elige al crear cada gasto');
+
+  b += '<div class="card-btn plain" style="cursor:default"><span style="display:flex;align-items:center;gap:16px">'
+    + '<span style="color:var(--navy)">'+I.bell+'</span><span><span class="ttl" style="color:#37424F;font-size:16px">Recordatorios</span>'
+    + '<span class="txt">Avisar a los integrantes con pagos pendientes</span></span></span>'
+    + '<button class="switch '+(gr.reminders?'on':'')+'" data-a="toggleReminders" data-gid="'+gr.id+'"><i></i></button></div>';
+
+  /* Solicitudes pendientes */
+  const abiertoSol = accOpen('pendientes', gr.requests.length);
+  b += '<button class="accordion'+(abiertoSol?' open':'')+'" data-a="acc" data-k="pendientes" style="margin-top:16px">'
+    + '<span class="l">Solicitudes pendientes</span>'
+    + '<span class="r"><span class="badge '+(gr.requests.length?'on':'')+'">'+gr.requests.length+'</span>'
+    + '<span class="arrow">'+I.down+'</span></span></button>';
+  {
+    b += '<div class="acc-panel'+(abiertoSol?' open':'')+'" data-acc="pendientes"><div class="inner">'
+      + '<div style="padding:16px 0 4px">';
+    if(!gr.requests.length) b += '<div class="empty" style="padding:16px">No hay solicitudes.</div>';
+    gr.requests.forEach(r=>{
+      b += '<div class="note-req"><div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">'
+        + '<span class="ava-ic">'+I.avatar+'</span><span><b style="display:block;color:var(--navy);text-transform:uppercase">'+esc(r.userName)+'</b>'
+        + '<span class="small muted">'+esc(r.full)+'</span></span></div>'
+        + '<div class="q">'+esc(r.userName)+' quiere unirse a “'+esc(gr.name)+'”.</div>'
+        + '<div class="acts"><button class="btn btn-soft btn-sm" data-a="rejectReq" data-gid="'+gr.id+'" data-rid="'+r.id+'">Rechazar '+I.close+'</button>'
+        + '<button class="btn btn-primary btn-sm" data-a="approveReq" data-gid="'+gr.id+'" data-rid="'+r.id+'">Aceptar '+I.check+'</button></div></div>';
+    });
+    b += '</div></div></div>';
+  }
+
+  /* Miembros */
+  const abiertoMiem = accOpen('miembros', gr.members.length);
+  b += '<button class="accordion'+(abiertoMiem?' open':'')+'" data-a="acc" data-k="miembros">'
+    + '<span class="l">Miembros</span>'
+    + '<span class="r"><span class="badge navy">'+gr.members.length+'</span>'
+    + '<span class="arrow">'+I.down+'</span></span></button>';
+  {
+    b += '<div class="acc-panel'+(abiertoMiem?' open':'')+'" data-acc="miembros"><div class="inner">'
+      + '<div style="padding:16px 0 4px">';
+    gr.members.forEach(m=>{
+      b += '<div class="mrow"><span class="ava-ic">'+I.avatar+'</span>'
+        + '<span class="nm" style="font-size:15px;font-weight:700;color:var(--navy);text-transform:uppercase">'+esc(nameOf(m))
+        + '<b>'+esc(fullOf(m))+'</b></span>'
+        + (gr.owner===m?'<span class="tag-own">Dueño</span>':(gr.admins.includes(m)?'<span class="tag-own">Admin</span>':''))+'</div>';
+    });
+    b += '</div></div></div>';
+  }
+
+  b += '<div class="hr"></div>'
+    + '<button class="btn btn-ghost" data-a="shareModal" data-id="'+gr.id+'">Compartir grupo '+I.share+'</button>'
+    + '<button class="btn btn-danger" data-a="archiveGroup" data-gid="'+gr.id+'" style="margin-top:8px">'
+      + (gr.archived?'Reabrir grupo':'Archivar o cerrar grupo')+'</button>'
+    + '<div class="hint" style="margin-top:8px">Al archivar, el grupo deja de aparecer en tu dashboard y no se pueden agregar gastos nuevos.</div>';
+  return shell({title:'Configurar grupo', body:b});
+}
+
+function scrCfgOptions(){
+  const gr = g(state.params.gid); if(!gr) return scrHome();
+  const kind = state.params.kind;
+  const MAP = {
+    add:{title:'Quién puede agregar gastos', sub:'Selecciona cuáles miembros pueden agregar gastos:', key:'addExpense',
+      opts:[['dueno','Solo el dueño del grupo'],['admins','Solo los administradores'],['todos','Todos los miembros']]},
+    join:{title:'Quién puede unirse', sub:'Selecciona cómo pueden unirse nuevas personas:', key:'join',
+      opts:[['enlace','Cualquiera con el enlace'],['aprobacion','Requiere aprobación']]},
+    invite:{title:'Quién puede invitar', sub:'Selecciona quién puede compartir el grupo:', key:'invite',
+      opts:[['todos','Todos los miembros'],['admins','Solo administradores']]}
+  }[kind];
+  let b = '<p class="sub">'+MAP.sub+'</p>';
+  MAP.opts.forEach(([v,l])=>{
+    const on = gr.perms[MAP.key]===v;
+    b += '<button class="optrow" data-a="setPerm" data-gid="'+gr.id+'" data-key="'+MAP.key+'" data-val="'+v+'">'
+      + '<span class="n">'+l+'</span><span class="radio '+(on?'on':'')+'"><i></i></span></button>';
+  });
+  if(kind==='join'){
+    b += '<div class="notice" style="margin-top:16px">'+I.warn+'<span>'+(gr.perms.join==='enlace'
+      ? 'Las personas con este enlace podrán unirse al grupo.'
+      : 'Las personas con este enlace deberán solicitar acceso al grupo.')+'</span></div>';
+  }
+  return shell({title:MAP.title, body:b});
+}
+
+function personCard(m, gr, extra, accion){
+  const et = accion ? 'button' : 'div';
+  return '<'+et+' class="personcard"'+(accion?' '+accion:'')+'>'
+    + '<span class="ava-ic">'+I.avatar+'</span>'
+    + '<span class="who"><span class="a">'+esc(nameOf(m))+'</span>'
+      + '<span class="b">'+esc(fullOf(m))+'</span></span>'
+    + (extra||'')
+  + '</'+et+'>';
+}
+function scrCfgAdmins(){
+  const gr = g(state.params.gid); if(!gr) return scrHome();
+  let b = '';
+  gr.members.filter(m=>gr.admins.includes(m)).forEach(m=>{
+    const extra = gr.owner===m
+      ? '<span class="tag-own">Dueño</span>'
+      : '<button class="btn btn-soft btn-xs" data-a="rmAdmin" data-gid="'+gr.id+'" data-id="'+m+'">Quitar</button>';
+    b += personCard(m, gr, extra, null);
+  });
+  b += '<button class="btn btn-primary btn-md" data-a="goAddAdmin" data-gid="'+gr.id+'" style="margin-top:8px">'
+     + 'Agregar admin '+I.plus+'</button>';
+  return shell({title:'Administradores', body:b});
+}
+/* Lista de miembros con buscador para elegir a quién ascender */
+function scrAddAdmin(){
+  const gr = g(state.params.gid); if(!gr) return scrHome();
+  const q = norm(state.form.adminQuery);
+  const cands = gr.members
+    .filter(m=>!gr.admins.includes(m))
+    .filter(m=>!q || norm(person(m).name+' '+fullOf(m)).includes(q));
+  let b = '<div class="searchbox"><span class="ic">'+I.search+'</span>'
+    + '<input class="inp" placeholder="Buscar miembro" value="'+esc(state.form.adminQuery||'')+'" '
+    + 'data-bind="adminQuery" autocomplete="off"></div>';
+  if(!cands.length){
+    b += '<div class="empty">'+(q ? 'No encontramos miembros con ese nombre.'
+                                  : 'Todos los miembros ya son administradores.')+'</div>';
+  }
+  cands.forEach(m=>{
+    b += personCard(m, gr, '', 'data-a="askAdmin" data-gid="'+gr.id+'" data-id="'+m+'"');
+  });
+  return shell({title:'Agregar admin', body:b});
+}
+
+function scrCfgAccount(){
+  const gr = g(state.params.gid); if(!gr) return scrHome();
+  let b = '<p class="sub">Selecciona la cuenta en la cual recibirás los pagos de este grupo:</p>'
+    + '<div class="acctlist">';
+  ACCOUNTS.forEach(a=>{
+    b += '<button class="acct-row '+(gr.accountId===a.id?'sel':'')+'" data-a="setGroupAccount" data-gid="'+gr.id+'" data-id="'+a.id+'">'
+      + '<span class="n">'+a.name+'</span>'
+      + '<span class="d">'+a.num+'<br>Disponible: '+money(a.avail)+'</span></button>';
+  });
+  b += '</div>';
+  return shell({title:'Cuenta para recibir pagos', body:b});
+}
+
+/* ---------- Seleccionar cuenta (reutilizable) ---------- */
+function scrSelectAccount(){
+  const target = state.params.for;
+  const cur = target==='pay' ? state.pay.accountId : state.form.accountId;
+  let b = '<p class="sub">'+(target==='pay'
+    ? 'Selecciona la cuenta desde la cual realizarás el pago:'
+    : 'Selecciona la cuenta en la cual recibirás los pagos:')+'</p>'
+    + '<div class="acctlist">';
+  ACCOUNTS.forEach(a=>{
+    b += '<button class="acct-row '+(cur===a.id?'sel':'')+'" data-a="setAccount" data-for="'+target+'" data-id="'+a.id+'">'
+      + '<span class="n">'+a.name+'</span>'
+      + '<span class="d">'+a.num+'<br>Disponible: '+money(a.avail)+'</span></button>';
+  });
+  b += '</div>';
+  return shell({title:'Seleccionar cuenta', body:b});
+}
+
+/* ============================================================
+   COMPARTIR / UNIRSE
+   ============================================================ */
+function scrJoin(){
+  const gr = g(state.params.gid); if(!gr) return scrHome();
+  const direct = gr.perms.join==='enlace';
+  const f = state.form;
+  const libres = (gr.unclaimed||[]).filter(id=>gr.members.includes(id));
+  const elegir = libres.length > 0;      /* el admin ya dejó los nombres puestos */
+  const nombre = f.joinName || '';
+  const ok = elegir ? !!f.joinPick : nombre.trim().length > 1;
+
+  let b = '<div class="join-head"><span class="join-em">'+gr.emoji+'</span>'
+      + '<h2>'+esc(gr.name)+'</h2></div>'
+    + '<div class="center" style="margin-bottom:24px"><span class="chip">'+typeLabel(gr.type)+'</span></div>'
+    + '<div class="section-title" style="margin-top:0">Creado por:</div>'
+    + '<div class="ownercard"><span class="ava-ic">'+I.avatar+'</span>'
+      + '<span class="nm">'+esc(fullOf(gr.owner))+'</span></div>';
+
+  if(elegir){
+    b += '<div class="section-title">Selecciona tu nombre para unirte:</div>';
+    libres.forEach(id=>{
+      const on = f.joinPick===id;
+      b += '<button class="pickrow'+(on?' on':'')+'" data-a="pickSlot" data-id="'+id+'">'
+        + '<span class="rad"><i></i></span>'
+        + '<span class="nm">'+esc(person(id).name)+'</span></button>';
+    });
+    b += '<button class="nolink" data-a="customName">¿No encuentras tu nombre?</button>';
+  } else {
+    b += '<div class="section-title">Ingresa tu nombre para unirte:</div>'
+      + '<div class="field"><span class="lab">Tu nombre</span>'
+        + '<input class="inp has-lab has-clear" placeholder=" " value="'+esc(nombre)+'" data-bind="joinName" autocomplete="off">'
+        + '<button class="clear" data-a="clearJoinName" aria-label="Borrar">'+I.close+'</button>'
+      + '</div>'
+      + '<div class="hint">'+(direct
+          ? 'Al continuar entrarás directamente al grupo.'
+          : 'El administrador deberá aprobar tu solicitud.')+'</div>';
+  }
+
+  return shell({title:'Unirte a grupo de pago', noBack:true,
+    right:'<button data-a="back" aria-label="Salir">'+I.close+'</button>',
+    body:b,
+    footer:'<div class="infobox" style="margin-bottom:16px">'+I.warn
+      + '<span>Los participantes podrán ver tu nombre real</span></div>'
+      + '<button class="btn btn-primary" data-a="doJoin" data-gid="'+gr.id+'" '+(ok?'':'disabled')+'>'
+      +(direct?'Unirte al grupo':'Solicitar unirme')+'</button>'});
+}
+function scrJoinSent(){
+  const gr = g(state.params.gid);
+  const b = '<div class="success" style="padding-top:24px"><div class="tick">'+I.clock+'</div>'
+    + '<h2>¡Solicitud enviada!</h2>'
+    + '<p class="sub center" style="margin:0 8px 16px">El administrador debe aprobar tu solicitud antes de que puedas ver y participar en el grupo.</p>'
+    + '<div class="card" style="text-align:left">'
+      + '<div class="info-line"><span class="k">Grupo</span><span class="v">'+esc(gr?gr.name:'')+'</span></div>'
+      + '<div class="info-line"><span class="k">Administrador</span><span class="v">'+esc(gr?person(gr.owner).name:'')+'</span></div>'
+      + '<div class="info-line"><span class="k">Estado</span><span class="v" style="color:#8A5B10">Pendiente</span></div>'
+    + '</div></div>';
+  return shell({title:'', noBack:true, body:b,
+    footer:'<button class="btn btn-primary" data-a="home">De acuerdo</button>'});
+}
+function scrJoined(){
+  const gr = g(state.params.gid);
+  const b = '<div class="success">'
+    + '<div class="tick" style="margin-top:24px">'+I.checkBig+'</div>'
+    + '<h2>¡Listo!<br>Ahora formas parte de “'+esc(gr?gr.name:'')+'”</h2></div>';
+  return shell({title:'', noBack:true, body:b, overlay:confettiHtml(),
+    footer:'<button class="btn btn-primary" data-a="openGroupReplace" data-id="'+(gr?gr.id:'')+'">Ver el grupo</button>'
+          +'<button class="btn btn-soft" data-a="home">Ir al dashboard</button>'});
+}
+
+/* ============================================================
+   MODALES
+   ============================================================ */
+function renderModal(){
+  const m = state.modal;
+  if(!m) return '';
+  /* La animación de entrada solo corre la primera vez que se pinta el modal.
+     En actualizaciones internas (elegir un día, restaurar, escribir) se omite,
+     si no parecería que se abre otro modal cada vez. */
+  const anim = state.modalShown ? ' no-anim' : '';
+  state.modalShown = true;
+  const sheet = (inner,cls)=>'<div class="scrim'+anim+'" data-a="closeModal"><div class="'+(cls||'sheet')+'" data-stop="1">'+inner+'</div></div>';
+
+  if(m.type==='share'){
+    const gr=g(m.gid); const direct=gr.perms.join==='enlace';
+    return sheet('<div class="ic-lg">'+I.shareGroupLg+'</div>'
+      + '<h3>Compartir grupo</h3>'
+      + '<p>Invita a otras personas para que se unan a este grupo</p>'
+      + '<div class="qt">Código QR del grupo</div>'
+      + qrHtml(gr.id)
+      + '<button class="btn btn-primary btn-md" data-a="shareLink">Compartir enlace '+I.share+'</button>'
+      + '<div class="dlg-note">'+(direct
+          ? 'Las personas invitadas podrán unirse directamente al grupo.'
+          : 'Las personas invitadas deberán solicitar acceso al grupo.')+'</div>','dialog');
+  }
+  if(m.type==='emoji'){
+    return sheet('<div class="grab"></div><h3>Elige un emoji</h3><div class="emoji-grid">'
+      + EMOJIS.map(e=>'<button data-a="setEmoji" data-v="'+e+'">'+e+'</button>').join('')+'</div>');
+  }
+  if(m.type==='category'){
+    return sheet('<div class="grab"></div><h3>Categoría</h3><div class="cat-grid">'
+      + CATEGORIES.map(c=>'<button data-a="setCategory" data-v="'+c.id+'"><span style="font-size:22px">'+c.e+'</span>'+c.n+'</button>').join('')+'</div>');
+  }
+  if(m.type==='splitmode'){
+    return sheet('<div class="grab"></div><h3>División</h3><div class="cat-grid">'
+      + '<button data-a="setSplit" data-v="iguales">Partes iguales</button>'
+      + '<button data-a="setSplit" data-v="montos">Montos personalizados</button></div>');
+  }
+  if(m.type==='payer'){
+    const gr=g(state.params.gid);
+    return sheet('<div class="grab"></div><h3>Pagado por</h3><div class="cat-grid">'
+      + gr.members.map(mm=>'<button data-a="setPayer" data-v="'+mm+'">'+esc(nameOf(mm))+'</button>').join('')+'</div>');
+  }
+  if(m.type==='customName'){
+    const v = state.form.joinName || '';
+    return sheet('<h3>Ingresar nombre</h3>'
+      + '<div class="field" style="text-align:left"><span class="lab">Nombre</span>'
+        + '<input class="inp has-lab has-clear" placeholder=" " value="'+esc(v)+'" data-bind="joinName" autocomplete="off">'
+        + '<button class="clear" data-a="clearJoinName" aria-label="Borrar">'+I.close+'</button></div>'
+      + '<button class="btn btn-primary" data-a="doJoin" data-gid="'+m.gid+'" '
+        + (v.trim().length>1?'':'disabled')+' style="margin-top:8px">Unirte al grupo</button>'
+      + '<button class="btn btn-soft" data-a="closeModal">No, cancelar</button>','dialog');
+  }
+  if(m.type==='dayOfMonth'){
+    let dias='';
+    for(let d=1; d<=31; d++)
+      dias += '<button class="'+(state.form.payDay===d?'on':'')+'" data-a="setDayOfMonth" data-v="'+d+'">'+d+'</button>';
+    return sheet('<div class="grab"></div><h3 class="cal-title">Selecciona el día de pago</h3>'
+      + '<div class="cal-grid" style="margin-top:24px">'+dias+'</div>'
+      + '<div class="hint" style="margin-top:16px">El cobro se repetirá ese día de cada mes. '
+      + 'En los meses más cortos se cobrará el último día.</div>');
+  }
+  if(m.type==='date'){
+    return sheet('<div class="grab"></div>'+calendarHtml(m.f));
+  }
+  if(m.type==='confirmAdmin'){
+    return sheet('<h3>¿Quieres agregar a este miembro como administrador?</h3>'
+      + personCard(m.id, g(m.gid), '', null)
+      + '<button class="btn btn-primary" data-a="doAdmin" data-gid="'+m.gid+'" data-id="'+m.id+'" style="margin-top:24px">Sí, continuar</button>'
+      + '<button class="btn btn-soft" data-a="closeModal">No, seleccionar otro miembro</button>','dialog');
+  }
+  /* Opciones del participante tocado en Balances */
+  if(m.type==='memberOptions'){
+    return sheet('<div class="grab"></div><h3 class="optsheet-title">Opciones</h3>'
+      + '<button class="optitem" data-a="openExternal" data-gid="'+m.gid+'" data-id="'+m.id+'">'
+        + '<span class="ic">'+I.extPay+'</span>'
+        + '<span class="t">Registrar pago externo</span></button>');
+  }
+  /* Formulario de registro manual */
+  if(m.type==='externalForm'){
+    const e = state.ext || {};
+    const nota = e.note || '';
+    return sheet('<div class="ic-lg">'+I.extPay+'</div>'
+      + '<h3>Registrar pago externo</h3>'
+      + '<p>Al registrar este pago confirmas que el siguiente participante ya realizó '
+      + 'este pago fuera de esta funcionalidad.</p>'
+      + '<div class="membercard" style="margin-bottom:16px">'
+        + '<span class="ava-ic">'+I.avatar+'</span>'
+        + '<span class="nm">'+esc(person(e.memberId).short)+'</span>'
+        + '<span class="amt">'+money(e.amount)+'</span></div>'
+      + '<div class="field" style="margin-bottom:0">'
+        + '<textarea class="inp" rows="3" maxlength="100" placeholder="Información adicional" '
+        + 'data-bind="extNote">'+esc(nota)+'</textarea></div>'
+      + '<div class="counter">'+nota.length+'/100</div>'
+      + '<button class="btn btn-primary" data-a="saveExternal" style="margin-top:16px">Confirmar pago</button>'
+      + '<button class="btn btn-soft" data-a="closeModal">No, cancelar</button>','dialog');
+  }
+  if(m.type==='confirmReq'){
+    const gr=g(m.gid); const r=gr.requests.find(x=>x.id===m.rid);
+    if(!r) return '';
+    const acc = m.mode==='accept';
+    return sheet('<div class="ic-lg">'+(acc?I.acceptLg:I.rejectLg)+'</div>'
+      + '<h3>'+(acc?'¿Aceptar como miembro del grupo?':'¿Rechazar como miembro del grupo?')+'</h3>'
+      + '<div class="reqcard"><span class="ava-ic">'+I.avatar+'</span>'
+        + '<span class="who"><span class="a">'+esc(r.userName.split(' ')[0])+'</span>'
+        + '<span class="b">'+esc(r.full)+'</span></span></div>'
+      + '<button class="btn btn-primary" data-a="doReq" data-gid="'+m.gid+'" data-rid="'+m.rid+'" data-mode="'+m.mode+'">Sí, continuar</button>'
+      + '<button class="btn btn-soft" data-a="closeModal">No, cancelar</button>','dialog');
+  }
+  if(m.type==='rejected'){
+    return sheet('<div class="ic-lg">'+I.rejectLg+'</div><h3>Solicitud rechazada</h3>'
+      + '<p><b>'+esc(m.who)+'</b> no fue agregado a “'+esc(m.gname)+'”. Puede volver a solicitar acceso con el enlace del grupo.</p>'
+      + '<button class="btn btn-primary" data-a="closeModal">De acuerdo</button>','dialog');
+  }
+  if(m.type==='approved'){
+    return sheet('<div class="ic-lg" style="color:var(--teal)">'+I.checkBig+'</div><h3>¡Listo!</h3>'
+      + '<p><b>'+esc(m.who)+'</b> ahora forma parte de “'+esc(m.gname)+'”. Le enviamos una confirmación.</p>'
+      + '<button class="btn btn-primary" data-a="closeModal">De acuerdo</button>','dialog');
+  }
+  if(m.type==='confirmArchive'){
+    const gr=g(m.gid);
+    return sheet('<div class="ic-lg">'+I.box+'</div><h3>'+(gr.archived?'¿Reabrir el grupo?':'¿Archivar o cerrar este grupo?')+'</h3>'
+      + '<p>'+(gr.archived?'El grupo volverá a aparecer en tu dashboard.':'“'+esc(gr.name)+'” dejará de aparecer en el dashboard y no se podrán agregar gastos nuevos. Podrás reabrirlo luego.')+'</p>'
+      + '<button class="btn btn-primary" data-a="doArchive" data-gid="'+m.gid+'">'+(gr.archived?'Sí, reabrir':'Sí, archivar')+'</button>'
+      + '<button class="btn btn-soft" data-a="closeModal">Cancelar</button>','dialog');
+  }
+  if(m.type==='adjust'){
+    const gr=g(m.gid); const p=gr.periods[0];
+    return sheet('<div class="grab"></div><h3>Ajustar montos</h3>'
+      + '<p style="margin:0 0 16px;font-size:14px;color:var(--ink-2)">Monto total del período: <b>'+money(gr.amount)+'</b></p>'
+      + '<div class="splitbox">'+gr.members.map(mm=>'<div class="splitrow"><span class="nm">'+esc(nameOf(mm))+'</span>'
+        + '<input class="splitmini" inputmode="decimal" value="'+(p.split[mm]||0)+'" data-adj="'+mm+'"></div>').join('')+'</div>'
+      + '<button class="btn btn-primary" data-a="saveAdjust" data-gid="'+gr.id+'" style="margin-top:16px">Aplicar</button>'
+      + '<button class="btn btn-soft" data-a="closeModal">Restaurar</button>');
+  }
+  return '';
+}
+
+/* ---------- Calendario ---------- */
+const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const MONTHS_L=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const CAL_TITLES={deadline:'Seleccionar fecha límite', nextDate:'Seleccionar fecha de pago', date:'Seleccionar fecha del gasto'};
+
+/* Fecha de hoy en el formato del prototipo: 27/Jul/2026 */
+function todayStr(){
+  const d=new Date();
+  return d.getDate()+'/'+MONTHS[d.getMonth()]+'/'+d.getFullYear();
+}
+/* '11/Jul/2026' -> mes y año, para abrir el calendario donde corresponde */
+function monthOf(val){
+  const i = MONTHS.indexOf(String(val||'').split('/')[1]);
+  return i<0 ? new Date().getMonth() : i;
+}
+function yearOf(val){
+  const y = parseInt(String(val||'').split('/')[2],10);
+  return isNaN(y) ? new Date().getFullYear() : y;
+}
+function calendarHtml(field){
+  const y = state.calYear==null ? new Date().getFullYear() : state.calYear;
+  const mIdx = state.calMonth==null ? new Date().getMonth() : state.calMonth;
+  const hoy = todayStr();
+  const first = new Date(y,mIdx,1).getDay();               /* 0 = domingo */
+  const days = new Date(y,mIdx+1,0).getDate();
+  const prevDays = new Date(y,mIdx,0).getDate();
+  let cells='';
+  for(let i=first-1;i>=0;i--) cells += '<button class="out" disabled tabindex="-1">'+(prevDays-i)+'</button>';
+  for(let d=1;d<=days;d++){
+    const val = d+'/'+MONTHS[mIdx]+'/'+y;
+    const cls = state.calSel===val ? 'on' : (val===hoy ? 'hoy' : '');
+    cells += '<button class="'+cls+'" data-a="calPick" data-v="'+val+'">'+d+'</button>';
+  }
+  const trail = (7 - ((first+days) % 7)) % 7;
+  for(let d=1;d<=trail;d++) cells += '<button class="out" disabled tabindex="-1">'+d+'</button>';
+
+  return '<div class="cal-head"><h3 class="cal-title">'+(CAL_TITLES[field]||'Seleccionar fecha')+'</h3>'
+      + '<button class="cal-close" data-a="closeModal" aria-label="Cerrar">'+I.close+'</button></div>'
+    + '<div class="cal-nav">'
+      + '<button data-a="calPrev" aria-label="Mes anterior">'+I.back+'</button>'
+      + '<b>'+MONTHS_L[mIdx]+' '+y+'</b>'
+      + '<button data-a="calNext" aria-label="Mes siguiente">'+I.fwd+'</button></div>'
+    + '<div class="cal-dow">'+['D','L','M','M','J','V','S'].map(d=>'<span>'+d+'</span>').join('')+'</div>'
+    + '<div class="cal-grid">'+cells+'</div>'
+    + '<div class="cal-actions">'
+      + '<button class="btn btn-soft" data-a="calReset">Restaurar</button>'
+      + '<button class="btn btn-primary" data-a="calApply" data-f="'+field+'" '+(state.calSel?'':'disabled')+'>Aplicar</button>'
+    + '</div>';
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const ROUTES = {
+  home:scrHome, myAccounts:scrMyAccounts, newGroupType:scrNewGroupType,
+  newExpenseGroup:scrNewExpenseGroup, newCollecta:scrNewCollecta, newRecurrent:scrNewRecurrent,
+  created:scrCreated, group:scrGroup, addExpense:scrAddExpense, expense:scrExpense, period:scrPeriod,
+  pay:scrPay, payConfirm:scrPayConfirm, receipt:scrReceipt, externalOk:scrExternalOk,
+  config:scrConfig, cfgOptions:scrCfgOptions, cfgAdmins:scrCfgAdmins, addAdmin:scrAddAdmin, cfgAccount:scrCfgAccount,
+  selectAccount:scrSelectAccount, join:scrJoin, joinSent:scrJoinSent, joined:scrJoined,
+  scan:scrScan, simulate:scrSimulate, archived:scrArchived
+};
+function render(anim, keepScroll){
+  const prevScroll = keepScroll ? (document.getElementById('scrollBody')||{}).scrollTop : 0;
+  const modalEl = keepScroll ? document.querySelector('.sheet,.dialog') : null;
+  const prevModalScroll = modalEl ? modalEl.scrollTop : 0;
+  const fn = ROUTES[state.route] || scrHome;
+  let html = fn();
+  if(anim) html = html.replace('class="screen"','class="screen '+anim+'"');
+  vp().innerHTML = html + renderModal() + (state.toast?'<div class="toast">'+esc(state.toast)+'</div>':'');
+  if(keepScroll){
+    const sb=document.getElementById('scrollBody'); if(sb) sb.scrollTop=prevScroll;
+    if(prevModalScroll){ const m=document.querySelector('.sheet,.dialog'); if(m) m.scrollTop=prevModalScroll; }
+  }
+  if(state.focusJoin){
+    state.focusJoin = null;
+    const el = document.querySelector('[data-bind="joinName"]');
+    if(el) el.focus();
+  }
+  if(state.focusId){
+    const el = document.querySelector('[data-person="'+state.focusId+'"]');
+    state.focusId = null;
+    if(el){ el.focus(); if(el.scrollIntoView) el.scrollIntoView({block:'nearest'}); }
+  }
+}
+
+/* ---------- Eventos ---------- */
+document.addEventListener('input', e=>{
+  const t=e.target;
+  if(t.dataset.bind){
+    let v=t.value;
+    if(t.dataset.money){
+      /* Se limpia el propio campo en el momento: las letras no llegan a verse */
+      v = sanitizeMoney(v);
+      const agrupado = moneyInput(v);
+      if(t.value !== agrupado){
+        t.value = agrupado;
+        const n = agrupado.length;
+        try{ t.setSelectionRange(n,n); }catch(_){}
+      }
+    }
+    state.form[t.dataset.bind]= v;
+    /* re-render diferido solo para campos que afectan CTA/cálculos */
+    const needs=['name','perPerson','amount','title','joinName','note','extNote','adminQuery'];
+    if(needs.includes(t.dataset.bind)){
+      clearTimeout(window.__db);
+      window.__db=setTimeout(()=>{ const pos=t.selectionStart; render(null,true);
+        const el=document.querySelector('[data-bind="'+t.dataset.bind+'"]');
+        if(el){ el.focus();
+          /* en montos el texto se reformatea, así que el cursor va al final */
+          const p = t.dataset.money ? (el.value||'').length : pos;
+          try{el.setSelectionRange(p,p);}catch(_){} } },420);
+    }
+  }
+  if(t.dataset.bind==='extNote' && state.ext){ state.ext.note = t.value; }
+  if(t.dataset.person){
+    const p = (state.form.people||[]).find(x=>x.id===t.dataset.person);
+    if(p) p.name = t.value;            /* sin re-render: no cambia nada más en pantalla */
+  }
+  if(t.dataset.custom){
+    /* Al escribir un monto, ese queda fijo y el resto se reparte solo */
+    const v = sanitizeMoney(t.value);
+    const agrupado = moneyInput(v);
+    if(t.value !== agrupado){
+      t.value = agrupado;
+      const n = agrupado.length;
+      try{ t.setSelectionRange(n,n); }catch(_){}
+    }
+    state.form.custom = state.form.custom||{};
+    state.form.locked = state.form.locked||{};
+    state.form.custom[t.dataset.custom] = Number(v)||0;
+    state.form.locked[t.dataset.custom] = true;
+    const quien = t.dataset.custom;
+    clearTimeout(window.__dbSplit);
+    window.__dbSplit = setTimeout(()=>{
+      render(null,true);
+      const el = document.querySelector('[data-custom="'+quien+'"]');
+      if(el){ el.focus(); const n=(el.value||'').length; try{el.setSelectionRange(n,n);}catch(_){} }
+    }, 380);
+  }
+  if(t.dataset.adj){
+    state.__adj = state.__adj||{};
+    state.__adj[t.dataset.adj] = Number(t.value)||0;
+  }
+});
+
+document.addEventListener('focusout', e=>{
+  const t = e.target;
+  if(!t || !t.dataset) return;
+
+  /* Al terminar de escribir, el monto se normaliza a dos decimales */
+  if(t.dataset.money && t.dataset.bind){
+    const v = sanitizeMoney(state.form[t.dataset.bind]);
+    state.form[t.dataset.bind] = (v === '' || isNaN(Number(v))) ? '' : round2(v).toFixed(2);
+    render(null, true);
+    return;
+  }
+
+  /* Un participante que queda sin nombre se retira, para no acumular
+     casillas vacías. La mía nunca se quita. */
+  if(t.dataset.person && t.dataset.person !== ME){
+    const p = (state.form.people||[]).find(x=>x.id===t.dataset.person);
+    if(p && !(p.name||'').trim()){
+      state.form.people = state.form.people.filter(x=>x.id!==p.id);
+      render(null, true);
+    }
+  }
+});
+
+document.addEventListener('click', e=>{
+  /* Escribir dentro de un campo no dispara la acción de la fila que lo contiene */
+  if(e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+  const stop = e.target.closest('[data-stop]');
+  const el = e.target.closest('[data-a]');
+  if(!el){ return; }
+  const a = el.dataset.a;
+  /* Clic dentro de la hoja/diálogo: no cerrar el modal por el scrim */
+  if(stop && el.contains(stop)) return;
+  const d = el.dataset;
+  const gid = d.gid || state.params.gid;
+
+  switch(a){
+    case 'back': back(); break;
+    case 'home': home(); break;
+    case 'closeModal': closeModal(); break;
+    case 'acc': {
+      const cabecera = document.querySelector('.accordion[data-k="'+d.k+'"]');
+      const abierto = state.accordions[d.k] = !(cabecera && cabecera.classList.contains('open'));
+      /* Sin repintar: repintar recrearía el nodo y la transición no correría */
+      const panel = document.querySelector('.acc-panel[data-acc="'+d.k+'"]');
+      if(panel && cabecera){ panel.classList.toggle('open', abierto); cabecera.classList.toggle('open', abierto); }
+      else render(null,true);
+      break; }
+    case 'tab': state.tab=d.t; render(null,true); break;
+    case 'myAccounts': go('myAccounts'); break;
+
+    /* Crear grupo */
+    case 'newGroup': state.form={}; go('newGroupType'); break;
+    case 'pickType':
+      state.form={type:d.t, people:[{id:ME, name:person(ME).name}], emoji:null, accountId:null,
+        frequency:'Mensual', deadline:todayStr(), payDay:null,
+        /* La colecta no muestra el campo; las demás arrancan sin categoría */
+        category: d.t==='colecta' ? 'regalos' : null};
+      go(d.t==='gastos'?'newExpenseGroup':(d.t==='colecta'?'newCollecta':'newRecurrent'));
+      break;
+    case 'pickEmoji': openModal({type:'emoji'}); break;
+    case 'setEmoji': state.form.emoji=d.v; closeModal(); break;
+    case 'pickCategory': openModal({type:'category'}); break;
+    case 'setCategory':
+      state.form.category=d.v;
+      if(state.route==='addExpense') state.form.emoji=catOf(d.v).e;
+      closeModal(); break;
+    case 'pickDayOfMonth': openModal({type:'dayOfMonth'}); break;
+    case 'setDayOfMonth': state.form.payDay=parseInt(d.v,10); closeModal(); break;
+    case 'pickDate': {
+      const cur = state.form[d.f] || todayStr();
+      state.calSel = cur; state.calInit = cur;
+      state.calMonth = monthOf(cur); state.calYear = yearOf(cur);
+      openModal({type:'date', f:d.f}); break; }
+    case 'calPrev': {
+      let m=(state.calMonth==null?new Date().getMonth():state.calMonth)-1;
+      let y=(state.calYear==null?new Date().getFullYear():state.calYear);
+      if(m<0){ m=11; y--; }
+      state.calMonth=m; state.calYear=y; render(null,true); break; }
+    case 'calNext': {
+      let m=(state.calMonth==null?new Date().getMonth():state.calMonth)+1;
+      let y=(state.calYear==null?new Date().getFullYear():state.calYear);
+      if(m>11){ m=0; y++; }
+      state.calMonth=m; state.calYear=y; render(null,true); break; }
+    case 'calPick': state.calSel=d.v; render(null,true); break;
+    case 'calReset':
+      state.calSel = state.calInit || todayStr();
+      state.calMonth = monthOf(state.calSel); state.calYear = yearOf(state.calSel);
+      render(null,true); break;
+    case 'calApply': if(state.calSel){ state.form[d.f]=state.calSel; } closeModal(); break;
+    case 'addMember': {
+      state.form.people = state.form.people || [{id:ME, name:person(ME).name}];
+      /* Si ya hay una casilla vacía, no se crea otra: se enfoca esa */
+      const vacia = state.form.people.find(p=>p.id!==ME && !(p.name||'').trim());
+      if(vacia){ state.focusId = vacia.id; render(null,true); break; }
+      const id = uid('u');
+      state.form.people.push({id:id, name:''});
+      state.focusId = id;
+      render(null,true); break; }
+    case 'clearMember': {
+      const p = (state.form.people||[]).find(x=>x.id===d.id);
+      if(p) p.name = '';
+      state.focusId = d.id;             /* el cursor se queda en el campo */
+      render(null,true); break; }
+    case 'pickAccount': go('selectAccount',{for:d.for, gid:state.params.gid}); break;
+    case 'setAccount':
+      if(d.for==='pay') state.pay.accountId=d.id; else state.form.accountId=d.id;
+      back(); break;
+    case 'createGroup': createGroup(); break;
+
+    /* Grupo */
+    case 'openGroup': state.tab='gastos'; go('group',{gid:d.id}); break;
+    case 'openGroupReplace': state.stack=[{route:'home',params:{},tab:'gastos'}]; state.tab='gastos'; go('group',{gid:d.id},{replace:true}); break;
+    case 'openPending': go('group',{gid:d.id}); break;
+    case 'config': go('config',{gid:d.id}); break;
+    case 'shareModal': openModal({type:'share', gid:d.id}); break;
+    case 'shareLink': closeModal(); toast('Enlace copiado al portapapeles'); break;
+
+    /* Gastos */
+    case 'addExpense': {
+      const gr=g(gid); const who={}; gr.members.forEach(m=>who[m]=true);
+      state.form={who:who, paidBy:ME, splitMode:'iguales', date:todayStr(), accountId:null, custom:{}};
+      go('addExpense',{gid:gid}); break; }
+    case 'toggleWho':
+      state.form.who[d.id] = !state.form.who[d.id];
+      if(state.form.locked) delete state.form.locked[d.id];   /* deja de contar como fijo */
+      render(null,true); break;
+    case 'pickPayer': openModal({type:'payer'}); break;
+    case 'setPayer': state.form.paidBy=d.v; closeModal(); break;
+    case 'pickSplit': openModal({type:'splitmode'}); break;
+    case 'setSplit':
+      state.form.splitMode=d.v;
+      state.form.locked={}; state.form.custom={};   /* empezar el reparto de cero */
+      closeModal(); break;
+    case 'resetSplit':
+      state.form.locked={}; state.form.custom={};
+      render(null,true); break;
+    case 'saveExpense': saveExpense(gid); break;
+    case 'openExpense': go('expense',{gid:d.gid, eid:d.eid}); break;
+    case 'openPeriod': go('period',{gid:d.gid, pid:d.pid}); break;
+    case 'adjustSplit': state.__adj=null; openModal({type:'adjust', gid:gid}); break;
+    case 'saveAdjust': {
+      const gr=g(gid); if(state.__adj){ gr.periods.forEach(p=>{ Object.entries(state.__adj).forEach(([m,v])=>{ if(!p.paid[m]) p.split[m]=round2(v); }); }); }
+      closeModal(); toast('Montos actualizados'); break; }
+
+    /* Pagos */
+    case 'payGroup': {
+      const gr=g(d.gid); const items=myDues(gr);
+      if(!items.length) break;
+      state.pay={items:items, total:round2(items.reduce((s,x)=>s+x.amount,0)),
+        multi:items.length>1, accountId:null, motivo:gr.name};
+      go('pay'); break; }
+    case 'payAll': {
+      const items=allDues();
+      state.pay={items:items, total:totalDue(), multi:true, accountId:null, motivo:'Grupos de pago — balance total'};
+      go('pay'); break; }
+    case 'payItem': {
+      const gr=g(gid); let item;
+      if(d.kind==='gasto'){ const e=gr.expenses.find(x=>x.id===d.id);
+        item={gid:gr.id,id:e.id,kind:'gasto',title:e.title,amount:e.split[ME],to:e.paidBy}; }
+      else if(d.kind==='colecta'){ item={gid:gr.id,id:'colecta',kind:'colecta',title:'Aporte a '+gr.name,amount:gr.perPerson,to:gr.owner}; }
+      else { const p=gr.periods.find(x=>x.id===d.id);
+        item={gid:gr.id,id:p.id,kind:'recurrente',title:gr.name+' — '+p.label,amount:p.split[ME],to:gr.owner}; }
+      state.pay={items:[item], total:item.amount, accountId:null, motivo:item.title+' ('+gr.name+')'};
+      go('pay'); break; }
+    case 'payReview':
+      state.pay.fecha='8 jul 2026';
+      state.pay.ref='PG-'+Math.floor(100000+Math.random()*899999);
+      go('payConfirm'); break;
+    case 'payDo':
+      if(state.pay.loading) break;
+      state.pay.loading = true;
+      render(null,true);
+      clearTimeout(window.__payT);
+      window.__payT = setTimeout(()=>{
+        if(state.route!=='payConfirm' || !state.pay.loading) return;  /* si salió, no se cobra */
+        state.pay.loading = false;
+        applyPayment();
+        go('receipt',{},{replace:true});
+      }, 1900);
+      break;
+    case 'shareReceipt': toast('Comprobante compartido'); break;
+    case 'clearJoinName': state.form.joinName=''; state.focusJoin=true; render(null,true); break;
+    case 'payDone': {
+      const gid2 = state.pay.items && state.pay.items.length===1 ? state.pay.items[0].gid : null;
+      if(gid2){ state.stack=[{route:'home',params:{},tab:'gastos'}]; state.tab='balances'; go('group',{gid:gid2},{replace:true}); }
+      else home();
+      break; }
+
+    /* Pago externo */
+    case 'memberOptions': openModal({type:'memberOptions', gid:d.gid, id:d.id}); break;
+    case 'openExternal': {
+      const gr=g(d.gid);
+      /* El monto sale de lo que esa persona debe */
+      state.ext = {gid:d.gid, memberId:d.id, amount:owedBy(gr, d.id), method:'efectivo', note:''};
+      openModal({type:'externalForm'}); break; }
+    case 'saveExternal': saveExternal(); break;
+    case 'externalDone':
+      state.stack=[{route:'home',params:{},tab:'gastos'}]; state.tab='balances';
+      go('group',{gid:d.gid},{replace:true}); break;
+
+    /* Configuración */
+    case 'cfgAdmins': go('cfgAdmins',{gid:gid}); break;
+    case 'goAddAdmin': state.form={adminQuery:''}; go('addAdmin',{gid:d.gid}); break;
+    case 'cfgAdd': go('cfgOptions',{gid:gid, kind:'add'}); break;
+    case 'cfgJoin': go('cfgOptions',{gid:gid, kind:'join'}); break;
+    case 'cfgInvite': go('cfgOptions',{gid:gid, kind:'invite'}); break;
+    case 'cfgAccount': go('cfgAccount',{gid:gid}); break;
+    case 'setPerm': { const gr=g(gid); gr.perms[d.key]=d.val; render(null,true); toast('Configuración actualizada'); break; }
+    case 'setGroupAccount': { const gr=g(gid); gr.accountId=d.id; render(null,true); toast('Cuenta actualizada'); break; }
+    case 'toggleReminders': { const gr=g(gid); gr.reminders=!gr.reminders; render(null,true); break; }
+    case 'askAdmin': openModal({type:'confirmAdmin', gid:gid, id:d.id}); break;
+    case 'doAdmin': { const gr=g(d.gid); if(!gr.admins.includes(d.id)) gr.admins.push(d.id);
+      state.modal=null; state.form={adminQuery:''}; back(); toast('Administrador agregado'); break; }
+    case 'rmAdmin': { const gr=g(gid); gr.admins=gr.admins.filter(x=>x!==d.id); render(null,true); toast('Administrador removido'); break; }
+    case 'archiveGroup': openModal({type:'confirmArchive', gid:gid}); break;
+    case 'doArchive': { const gr=g(gid); gr.archived=!gr.archived; closeModal();
+      toast(gr.archived?'Grupo archivado':'Grupo reabierto'); if(gr.archived) home(); break; }
+
+    /* Solicitudes: siempre se confirma antes de ejecutar la acción */
+    case 'approveReq': openModal({type:'confirmReq', gid:d.gid, rid:d.rid, mode:'accept'}); break;
+    case 'rejectReq':  openModal({type:'confirmReq', gid:d.gid, rid:d.rid, mode:'reject'}); break;
+    case 'doReq': {
+      const gr=g(d.gid); const r=gr.requests.find(x=>x.id===d.rid);
+      if(!r){ closeModal(); break; }
+      gr.requests=gr.requests.filter(x=>x.id!==d.rid);
+      if(d.mode==='accept'){
+        let newId = Object.keys(PEOPLE).find(k=>PEOPLE[k].name===r.userName);
+        if(!newId){ newId=uid('u'); PEOPLE[newId]={id:newId, name:r.userName, full:r.full, short:r.userName.split(' ')[0]}; }
+        if(!gr.members.includes(newId)){
+          gr.members.push(newId);
+          if(gr.type==='colecta') gr.contributions[newId]=false;
+          if(gr.type==='recurrente') gr.periods.forEach(p=>{ p.split[newId]=round2(gr.amount/gr.members.length); p.paid[newId]=false; });
+        }
+        openModal({type:'approved', who:r.userName, gname:gr.name});
+      } else {
+        openModal({type:'rejected', who:r.userName, gname:gr.name});
+      }
+      break; }
+
+    /* Unirse */
+    case 'joinQR': state.scan='buscando'; go('scan',{gid:'g1'}); startScan(); break;
+    case 'scanNow': scanDetect(); break;
+    case 'goArchived': go('archived'); break;
+    case 'goSimulate': go('simulate'); break;
+    case 'simInvite': state.form={}; go('join',{gid:d.gid||'g1'}); break;
+    case 'pickSlot':
+      state.form.joinPick = (state.form.joinPick===d.id ? null : d.id);
+      state.form.joinName = '';
+      render(null,true); break;
+    case 'customName':
+      state.form.joinPick = null; state.form.joinName = '';
+      openModal({type:'customName', gid:gid}); break;
+    case 'doJoin': doJoin(d.gid||gid); break;
+    default: break;
+  }
+});
+
+/* ---------- Acciones ---------- */
+/* Registra en la agenda los nombres escritos a mano y devuelve los ids de los miembros */
+function commitPeople(list){
+  const out = [];
+  (list||[]).forEach(p=>{
+    const isMe = p.id===ME;
+    const nm = (p.name||'').trim() || (isMe ? person(ME).name : '');
+    if(!nm) return;                       /* se descartan los campos vacíos */
+    const short = nm.split(' ')[0];
+    PEOPLE[p.id] = {id:p.id, name:nm, short:short, full:(PEOPLE[p.id]&&PEOPLE[p.id].name===nm)
+      ? PEOPLE[p.id].full : nm.toUpperCase()};
+    out.push(p.id);
+  });
+  if(!out.includes(ME)) out.unshift(ME);
+  return out;
+}
+
+/* Próxima ocurrencia de ese día del mes, ajustando los meses cortos */
+function nextDateFor(dia){
+  const hoy = new Date();
+  let y = hoy.getFullYear(), m = hoy.getMonth();
+  if(hoy.getDate() >= dia){ m++; if(m>11){ m=0; y++; } }
+  const ultimo = new Date(y, m+1, 0).getDate();
+  return Math.min(dia, ultimo)+'/'+MONTHS[m]+'/'+y;
+}
+
+function createGroup(){
+  const f = state.form;
+  const id = uid('g');
+  const base = {
+    id:id, type:f.type, emoji:f.emoji||'🎉', name:f.name.trim(), category:f.category||'otros',
+    owner:ME, admins:[ME], members:commitPeople(f.people),
+    accountId: f.type==='gastos' ? null : f.accountId,
+    archived:false, reminders:true, requests:[],
+    perms:{addExpense:'todos', join:'aprobacion', invite:'todos'}
+  };
+  if(f.type==='gastos'){ base.expenses=[]; }
+  if(f.type==='colecta'){
+    base.perPerson=round2(f.perPerson); base.deadline=f.deadline;
+    base.contributions={}; base.members.forEach(m=>base.contributions[m]=false);
+  }
+  if(f.type==='recurrente'){
+    base.amount=round2(f.amount);
+    base.frequency='Mensual';               /* por ahora solo mensual */
+    base.payDay=f.payDay;
+    base.nextDate=nextDateFor(f.payDay);
+    const per = round2(base.amount/base.members.length);
+    const split={}, paid={}; base.members.forEach(m=>{split[m]=per; paid[m]=false;});
+    const mes = MONTHS_L[MONTHS.indexOf(base.nextDate.split('/')[1])].toLowerCase();
+    base.periods=[{id:uid('p'), label:'Mes de '+mes, due:base.nextDate, split:split, paid:paid}];
+  }
+  state.groups.push(base);
+  state.stack=[{route:'home',params:{},tab:'gastos'}];
+  go('created',{gid:id},{replace:true, up:true});
+}
+
+function saveExpense(gid){
+  const gr=g(gid); const f=state.form;
+  const amt = round2(f.amount);
+  const act = gr.members.filter(m=>f.who[m]);
+  const split = splitAmounts(gr);
+  const paid = {};
+  act.forEach(m=> paid[m] = (m===(f.paidBy||ME)));
+  gr.expenses.push({id:uid('e'), title:f.title.trim(), emoji:f.category?catOf(f.category).e:'🧾',
+    category:f.category||'otros', amount:amt, paidBy:f.paidBy||ME, date:f.date, split:split, paid:paid});
+  state.tab='gastos';
+  back();
+  toast('Gasto agregado con éxito: “'+f.title.trim()+'”');
+}
+
+function applyPayment(){
+  (state.pay.items||[]).forEach(it=>{
+    const gr=g(it.gid); if(!gr) return;
+    if(it.kind==='gasto'){ const e=gr.expenses.find(x=>x.id===it.id); if(e) e.paid[ME]=true; }
+    if(it.kind==='colecta'){ gr.contributions[ME]=true; }
+    if(it.kind==='recurrente'){ const p=gr.periods.find(x=>x.id===it.id); if(p) p.paid[ME]=true; }
+  });
+  const a = acct(state.pay.accountId); a.avail = round2(a.avail - state.pay.total);
+}
+
+/* Marca como saldado lo que ese participante debía dentro del grupo */
+function saveExternal(){
+  const e = state.ext; if(!e) return;
+  const gr = g(e.gid); if(!gr) return;
+  if(gr.type==='colecta'){ gr.contributions[e.memberId] = true; }
+  else if(gr.type==='recurrente'){
+    const p = gr.periods.find(x=>!x.paid[e.memberId]); if(p) p.paid[e.memberId] = true;
+  } else {
+    gr.expenses.forEach(x=>{
+      if(x.paidBy !== e.memberId && x.split[e.memberId] && !x.paid[e.memberId]) x.paid[e.memberId] = true;
+    });
+  }
+  state.stack = [{route:'home',params:{},tab:'gastos'}];
+  state.modal = null;
+  go('externalOk', {}, {replace:true, up:true});
+}
+
+/* Reclamar un nombre ya creado: hereda su historial dentro del grupo */
+function claimSlot(gr, slotId){
+  const mover = o => { if(o && o[slotId]!==undefined){ o[ME] = o[slotId]; delete o[slotId]; } };
+  gr.members = gr.members.map(m => m===slotId ? ME : m);
+  (gr.expenses||[]).forEach(e=>{ if(e.paidBy===slotId) e.paidBy = ME; mover(e.split); mover(e.paid); });
+  if(gr.contributions) mover(gr.contributions);
+  (gr.periods||[]).forEach(p=>{ mover(p.split); mover(p.paid); });
+  gr.admins = gr.admins.map(m => m===slotId ? ME : m);
+  gr.unclaimed = (gr.unclaimed||[]).filter(x => x!==slotId);
+}
+
+function doJoin(gid){
+  const gr=g(gid); const direct = gr.perms.join==='enlace';
+  const pick = state.form.joinPick;
+  const nm = (state.form.joinName||'').trim();
+  if(direct){
+    if(pick){ claimSlot(gr, pick); }
+    else if(!gr.members.includes(ME)) gr.members.push(ME);
+    if(gr.type==='colecta') gr.contributions[ME]=false;
+    if(gr.type==='recurrente') gr.periods.forEach(p=>{ if(p.split[ME]==null){ p.split[ME]=round2(gr.amount/(gr.members.length)); p.paid[ME]=false; } });
+    state.stack=[{route:'home',params:{},tab:'gastos'}];
+    go('joined',{gid:gid},{replace:true, up:true});
+  } else {
+    const quien = pick ? person(pick).name : nm;
+    gr.requests.push({id:uid('r'), userName:quien, full:quien.toUpperCase()});
+    state.stack=[{route:'home',params:{},tab:'gastos'}];
+    go('joinSent',{gid:gid},{replace:true, up:true});
+  }
+}
+
+render();
+</script>
+</body>
+</html>
