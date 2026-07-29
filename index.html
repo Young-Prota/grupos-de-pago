@@ -88,7 +88,7 @@ h2.t, .section-title, .sec-nav, .success h2,
 @keyframes slideBack{from{transform:translateX(-22px);opacity:0}to{transform:none;opacity:1}}
 @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
 
-.nav{flex:0 0 auto;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:8px 16px 8px}
+.nav{margin:0 -24px;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:8px 16px}
 /* Page header: Inter regular 16 */
 .nav h1{grid-column:2;text-align:center;margin:0;
   font-family:var(--font-ui);font-size:16px;font-weight:400;color:var(--navy)}
@@ -101,7 +101,7 @@ h2.t, .section-title, .sec-nav, .success h2,
   font-family:var(--font-ui);font-size:10px;font-weight:700;line-height:1;
   display:flex;align-items:center;justify-content:center}
 
-.body{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 24px 24px;-webkit-overflow-scrolling:touch}
+.body{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 24px 24px;-webkit-overflow-scrolling:touch}
 .body::-webkit-scrollbar{width:0}
 .footer{flex:0 0 auto;padding:16px 24px 24px;background:#fff;border-top:1px solid transparent}
 .footer.bordered{border-top:1px solid var(--line-2)}
@@ -259,7 +259,7 @@ textarea.inp{height:auto;min-height:96px;padding:16px}
 .amt.pos,.amt.neg,.amt.zero{color:#3D4558}
 
 /* Chips */
-.type-chip{text-align:center;margin:16px 0 24px}   /* +8 del padding del body = 24 */
+.type-chip{text-align:center;margin:24px 0}   /* 24 respecto a la cabecera y al primer campo */
 .chip{display:inline-block;background:var(--chip);color:var(--navy);border-radius:20px;padding:8px 16px;font-size:14px;font-weight:600}
 .pill{display:inline-block;border-radius:20px;padding:4px 8px;font-size:11.5px;font-weight:800;letter-spacing:.2px}
 .pill.paid{background:#E6F5EF;color:var(--green)}
@@ -318,8 +318,6 @@ textarea.inp{height:auto;min-height:96px;padding:16px}
 .totalcard.tap{display:block;width:100%;cursor:pointer;background:#fff;transition:background .15s}
 .totalcard.tap:active{background:#FAFBFC}
 .totalcard.tap .k,.totalcard.tap .v{display:block}
-.totalcard.tap .go{display:inline-flex;align-items:center;gap:8px;margin-top:8px;
-  font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--orange)}
 
 /* El icono siempre centrado respecto al texto del aviso */
 .notice{display:flex;align-items:center;gap:16px;background:#FFFAF1;border-radius:var(--r);padding:16px;font-size:13.5px;color:#3B4559;line-height:1.45;margin-bottom:16px}
@@ -521,7 +519,8 @@ button.personcard:active{background:#FAFBFC}
 .screen[data-pay] .nav button{color:#fff}
 .screen[data-pay] .nav button:active{background:rgba(255,255,255,.16)}
 .screen[data-pay] .footer{background:transparent}
-.pay-actions{margin-top:32px;padding-bottom:8px}
+.pay-actions,.flow-actions{margin-top:32px;padding-bottom:8px}
+.flow-actions .btn+.btn{margin-top:8px}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* Carga de la transacción: overlay oscuro + cuadro blanco con loader gris */
 .loader-scrim{position:absolute;inset:0;background:rgba(24,28,34,.42);
@@ -645,11 +644,17 @@ button.personcard:active{background:#FAFBFC}
   line-height:1.2;
 }
 
+/* En un teléfono real el sistema ya dibuja hora, señal y batería:
+   se oculta la barra simulada y se respetan las zonas seguras. */
 @media (max-width:430px){
   body{padding:0;background:#fff;align-items:stretch}
   .stage{gap:0;width:100%}
-  .brandbar,.legend{display:none}
-  .phone{width:100vw;height:100vh;border-radius:0;box-shadow:none}
+  .brandbar,.legend,.statusbar{display:none}
+  .phone{width:100vw;height:100vh;height:100dvh;border-radius:0;box-shadow:none}
+  .nav{padding-top:calc(8px + env(safe-area-inset-top))}
+  .footer{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+  .scan-actions{bottom:calc(24px + env(safe-area-inset-bottom))}
+  .toast{bottom:calc(24px + env(safe-area-inset-bottom))}
 }
 </style>
 </head>
@@ -955,13 +960,18 @@ function confettiHtml(n){
 function shell(o){
   return '<div class="screen"'+(o.pay?' data-pay="1"':'')+'>'
     + (o.overlay || '')
-    + '<div class="nav">'
-      + (o.leftHtml!==undefined ? o.leftHtml : (o.noBack?'<span></span>':'<button data-a="back" aria-label="Volver">'+I.back+'</button>'))
-      + '<h1>'+esc(o.title||'')+'</h1>'
-      + (o.right?'<span class="right">'+o.right+'</span>':'<span></span>')
+    /* La cabecera va dentro del área que scrollea: no queda anclada.
+       flow:true baja además el CTA al final del contenido. */
+    + '<div class="body" id="scrollBody">'
+      + '<div class="nav">'
+        + (o.leftHtml!==undefined ? o.leftHtml : (o.noBack?'<span></span>':'<button data-a="back" aria-label="Volver">'+I.back+'</button>'))
+        + '<h1>'+esc(o.title||'')+'</h1>'
+        + (o.right?'<span class="right">'+o.right+'</span>':'<span></span>')
+      + '</div>'
+      + o.body
+      + (o.flow && o.footer ? '<div class="flow-actions">'+o.footer+'</div>' : '')
     + '</div>'
-    + '<div class="body" id="scrollBody">'+o.body+'</div>'
-    + (o.footer?'<div class="footer'+(o.borderFooter?' bordered':'')+'">'+o.footer+'</div>':'')
+    + (o.footer && !o.flow ? '<div class="footer'+(o.borderFooter?' bordered':'')+'">'+o.footer+'</div>' : '')
   + '</div>';
 }
 
@@ -1221,7 +1231,7 @@ function scrNewExpenseGroup(){
     + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px',
         value: f.category ? catOf(f.category).e+' '+catOf(f.category).n : '', icon:I.down})
     + participantsBlock();
-  return shell({title:'Nuevo grupo de pago', body:b,
+  return shell({title:'Nuevo grupo de pago', body:b, flow:true,
     footer:'<button class="btn btn-primary" data-a="createGroup" '+(ok?'':'disabled')+'>Crear grupo de pago</button>'});
 }
 
@@ -1243,7 +1253,7 @@ function scrNewCollecta(){
     + '</div>'
     + accountBlock()
     + participantsBlock();
-  return shell({title:'Nuevo grupo de pago', body:b,
+  return shell({title:'Nuevo grupo de pago', body:b, flow:true,
     footer:'<button class="btn btn-primary" data-a="createGroup" '+(ok?'':'disabled')+'>Crear grupo de pago</button>'});
 }
 
@@ -1273,7 +1283,7 @@ function scrNewRecurrent(){
     + '</div>'
     + accountBlock()
     + participantsBlock();
-  return shell({title:'Nuevo grupo de pago', body:b,
+  return shell({title:'Nuevo grupo de pago', body:b, flow:true,
     footer:'<button class="btn btn-primary" data-a="createGroup" '+(ok?'':'disabled')+'>Crear grupo de pago</button>'});
 }
 
@@ -1294,7 +1304,7 @@ function scrCreated(){
         + (dir? 'Las personas con este enlace podrán unirse directamente al grupo.'
               : 'Las personas con este enlace deberán solicitar acceso al grupo.') + '</div>'
     + '</div></div>';
-  return shell({title:'', noBack:true, body:b, overlay:confettiHtml(),
+  return shell({title:'', noBack:true, body:b, flow:true, overlay:confettiHtml(),
     footer:'<button class="btn btn-primary" data-a="openGroupReplace" data-id="'+gr.id+'">Continuar</button>'});
 }
 
@@ -1367,8 +1377,7 @@ function scrGroup(){
         + (porPagar > 0
             ? '<button class="totalcard tap" data-a="payGroup" data-gid="'+gr.id+'">'
               + '<span class="k">Monto a pagar</span>'
-              + '<span class="v">'+money(porPagar)+'</span>'
-              + '<span class="go">Pagar '+I.chev+'</span></button>'
+              + '<span class="v">'+money(porPagar)+'</span></button>'
             : '<div class="totalcard"><div class="k">'+(my<0?'Monto a pagar':'Te deben')+'</div>'
               + '<div class="v">'+money(Math.abs(my))+'</div></div>')
         + '<div class="section-title">Balances</div>';
@@ -1386,11 +1395,12 @@ function scrGroup(){
       b += '</div>';
     }
     const canAdd = gr.perms.addExpense==='todos' || (gr.perms.addExpense==='admins'&&isAdmin(gr)) || (gr.perms.addExpense==='dueno'&&gr.owner===ME);
-    return shell({title:'Grupo de pago', right:right, body:b,
-      footer: canAdd
+    /* En Balances no se agregan gastos: el botón sobra */
+    const pie = state.tab!=='gastos' ? ''
+      : canAdd
         ? '<button class="btn btn-primary" data-a="addExpense" data-gid="'+gr.id+'">Agregar gasto '+I.plus+'</button>'
-        : '<button class="btn" disabled>Solo los administradores pueden agregar gastos</button>',
-      borderFooter:true});
+        : '<button class="btn" disabled>Solo los administradores pueden agregar gastos</button>';
+    return shell({title:'Grupo de pago', right:right, body:b, footer:pie, borderFooter:!!pie});
   }
 
   if(gr.type==='colecta'){
@@ -1463,8 +1473,12 @@ function scrGroup(){
     if(isAdmin(gr)) b += '<button class="btn btn-ghost btn-md" data-a="adjustSplit" data-gid="'+gr.id+'" style="margin-top:8px">Ajustar montos</button>';
     b += '</div>';
   }
+  const pendRec = myDues(gr);
+  const totalRec = round2(pendRec.reduce((s,d)=>s+d.amount,0));
   return shell({title:'Grupo de pago', right:right, body:b, borderFooter:true,
-    footer:'<button class="btn btn-soft" data-a="shareModal" data-id="'+gr.id+'">Compartir grupo '+I.share+'</button>'});
+    footer: pendRec.length
+      ? '<button class="btn btn-primary" data-a="payGroup" data-gid="'+gr.id+'">Pagar pendientes · '+money(totalRec)+'</button>'
+      : '<button class="btn" disabled>No tienes pagos pendientes</button>'});
 }
 
 /* Grupo con solicitud pendiente (vista bloqueada) */
@@ -1477,7 +1491,7 @@ function scrPendingGroup(gr){
     + '<div class="info-line"><span class="k">Estado</span><span class="v" style="color:#8A5B10">Pendiente de aprobación</span></div></div>'
     + '<div class="notice" style="margin-top:16px;text-align:left">'+I.lock+'<span>Mientras tu solicitud esté pendiente no puedes ver gastos, miembros ni montos del grupo.</span></div>'
     + '</div>';
-  return shell({title:'Grupo de pago', body:b, footer:'<button class="btn btn-soft" data-a="home">Volver al dashboard</button>'});
+  return shell({title:'Grupo de pago', body:b, flow:true, footer:'<button class="btn btn-soft" data-a="home">Volver al dashboard</button>'});
 }
 
 /* ---------- Agregar gasto ---------- */
@@ -1530,7 +1544,7 @@ function scrAddExpense(){
     + '</div>';
   }
   return shell({title:'Agregar gasto', leftHtml:'<span></span>',
-    right:'<button data-a="back" aria-label="Cerrar">'+I.close+'</button>', body:b,
+    right:'<button data-a="back" aria-label="Cerrar">'+I.close+'</button>', body:b, flow:true,
     footer:'<button class="btn btn-primary" data-a="saveExpense" data-gid="'+gr.id+'" '+(ok?'':'disabled')+'>Crear gasto</button>'});
 }
 function accountBlock2(gr){
@@ -1670,7 +1684,7 @@ function scrPay(){
       + (a? '<span><span class="n">'+a.name+'</span><span class="d">'+a.num+'<br>Disponible: '+money(a.avail)+'</span></span>'
           : '<span class="n" style="color:var(--navy)">Seleccionar cuenta</span>')
       + '<span class="chev">'+I.chev+'</span></button>';
-  return shell({title:'Pagar gasto', body:b,
+  return shell({title:'Pagar gasto', body:b, flow:true,
     footer:'<button class="btn btn-primary" data-a="payReview" '+(a?'':'disabled')+'>Continuar</button>'});
 }
 function payRows(p, a, tax, conHora){
@@ -1732,7 +1746,7 @@ function scrExternalOk(){
       + '<span class="amt">'+money(e.amount)+'</span></div>'
     + '<div class="method">'+esc(METODOS[e.method]||'')+'</div>'
   + '</div>';
-  return shell({title:'', noBack:true, body:b,
+  return shell({title:'', noBack:true, body:b, flow:true,
     footer:'<button class="btn btn-primary" data-a="externalDone" data-gid="'+(gr?gr.id:'')+'">Continuar</button>'});
 }
 
@@ -1944,7 +1958,7 @@ function scrJoin(){
 
   return shell({title:'Unirte a grupo de pago', noBack:true,
     right:'<button data-a="back" aria-label="Salir">'+I.close+'</button>',
-    body:b,
+    body:b, flow:true,
     footer:'<div class="infobox" style="margin-bottom:16px">'+I.warn
       + '<span>Los participantes podrán ver tu nombre real</span></div>'
       + '<button class="btn btn-primary" data-a="doJoin" data-gid="'+gr.id+'" '+(ok?'':'disabled')+'>'
@@ -1960,7 +1974,7 @@ function scrJoinSent(){
       + '<div class="info-line"><span class="k">Administrador</span><span class="v">'+esc(gr?person(gr.owner).name:'')+'</span></div>'
       + '<div class="info-line"><span class="k">Estado</span><span class="v" style="color:#8A5B10">Pendiente</span></div>'
     + '</div></div>';
-  return shell({title:'', noBack:true, body:b,
+  return shell({title:'', noBack:true, body:b, flow:true,
     footer:'<button class="btn btn-primary" data-a="home">De acuerdo</button>'});
 }
 function scrJoined(){
@@ -1968,7 +1982,7 @@ function scrJoined(){
   const b = '<div class="success">'
     + '<div class="tick" style="margin-top:24px">'+I.checkBig+'</div>'
     + '<h2>¡Listo!<br>Ahora formas parte de “'+esc(gr?gr.name:'')+'”</h2></div>';
-  return shell({title:'', noBack:true, body:b, overlay:confettiHtml(),
+  return shell({title:'', noBack:true, body:b, flow:true, overlay:confettiHtml(),
     footer:'<button class="btn btn-primary" data-a="openGroupReplace" data-id="'+(gr?gr.id:'')+'">Ver el grupo</button>'
           +'<button class="btn btn-soft" data-a="home">Ir al dashboard</button>'});
 }
