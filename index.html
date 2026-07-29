@@ -57,7 +57,7 @@ input,textarea,select{font-family:var(--font-ui)}
    Inter para todo lo demás: cuerpo, etiquetas, campos y textos de apoyo. */
 h2.t, .section-title, .sec-nav, .success h2,
 .sheet h3,
-.totalcard .v, .amt, .chip, .receipt-k, .balrow .who .a, .accordion .l,
+.totalcard .v, .amt, .chip, .receipt-k, .balrow .who .a,
 .brandbar, .qrcard .qt, .info-line .v, .mrow .nm, .splitrow .val{
   font-family:var(--font-display);
 }
@@ -90,6 +90,10 @@ h2.t, .section-title, .sec-nav, .success h2,
 
 .nav{margin:0 -24px;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:8px 16px}
 /* Page header: Inter regular 16 */
+/* En el dashboard la cabecera respira más antes del balance */
+.screen[data-screen="home"] .nav{padding-bottom:24px}
+/* Se ve como el botón de volver, pero no responde */
+.nav .nav-ghost{display:flex;align-items:center;justify-content:center;padding:8px;color:var(--orange)}
 .nav h1{grid-column:2;text-align:center;margin:0;
   font-family:var(--font-ui);font-size:16px;font-weight:400;color:var(--navy)}
 .nav button{background:none;border:0;padding:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--orange);border-radius:10px}
@@ -218,12 +222,13 @@ textarea.inp{height:auto;min-height:96px;padding:16px}
   padding:16px 8px;cursor:pointer;text-align:left;min-height:100px;
   display:flex;flex-direction:column;justify-content:space-between;gap:16px}
 .tile:active{background:#FAFBFC}
-.tile .ic{color:var(--orange);display:flex}
+.tile .ic{color:#012169;display:flex}
 .tile .ic svg{display:block;width:28px;height:28px}
 .tile .lbl{font-family:var(--font-ui);font-size:13px;font-weight:500;color:#37424F;line-height:1.25}
 
-.accordion{border-bottom:1px solid var(--line);padding:16px 4px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:none;width:100%;border-left:0;border-right:0;border-top:0}
-.accordion .l{font-size:16px;font-weight:700;color:var(--navy)}
+/* La cabecera del acordeón respira más; el panel de abajo no se ve afectado */
+.accordion{border-bottom:1px solid var(--line);padding:24px 4px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:none;width:100%;border-left:0;border-right:0;border-top:0}
+.accordion .l{font-family:var(--font-ui);font-size:16px;font-weight:400;color:var(--navy)}
 .accordion .r{display:flex;align-items:center;gap:8px}
 /* En cero el contador va en durazno; con contenido pasa a naranja */
 .badge{min-width:26px;height:26px;border-radius:13px;background:#F7D2AB;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;padding:0 8px}
@@ -253,13 +258,17 @@ textarea.inp{height:auto;min-height:96px;padding:16px}
 .gcard .nm{display:block;font-family:var(--font-ui);font-size:20px;font-weight:500;color:#3B4559;line-height:1.25;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gcard .mt{display:block;font-size:15px;color:#7A8593;margin-top:4px}
+/* El círculo del emoji se tiñe según el tipo de grupo */
+.avatar[data-gtype="gastos"],.hero .em[data-gtype="gastos"],.join-em[data-gtype="gastos"]{background:#EAF4FD}
+.avatar[data-gtype="colecta"],.hero .em[data-gtype="colecta"],.join-em[data-gtype="colecta"]{background:#FEF3F3}
+.avatar[data-gtype="recurrente"],.hero .em[data-gtype="recurrente"],.join-em[data-gtype="recurrente"]{background:#FFF1DA}
 .avatar{flex:0 0 42px;height:42px;border-radius:21px;background:var(--orange-l);display:flex;align-items:center;justify-content:center;font-size:20px}
 /* El monto siempre en el mismo color: lo que distingue es el signo */
 .amt{font-size:15px;font-weight:800;color:#3D4558;white-space:nowrap}
 .amt.pos,.amt.neg,.amt.zero{color:#3D4558}
 
 /* Chips */
-.type-chip{text-align:center;margin:24px 0}   /* 24 respecto a la cabecera y al primer campo */
+.type-chip{text-align:center;margin:24px 0}
 .chip{display:inline-block;background:var(--chip);color:var(--navy);border-radius:20px;padding:8px 16px;font-size:14px;font-weight:600}
 .pill{display:inline-block;border-radius:20px;padding:4px 8px;font-size:11.5px;font-weight:800;letter-spacing:.2px}
 .pill.paid{background:#E6F5EF;color:var(--green)}
@@ -309,6 +318,16 @@ textarea.inp{height:auto;min-height:96px;padding:16px}
 .ava-ic{flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center}
 .ava-ic svg{display:block;width:40px;height:40px}
 
+/* Balance del dashboard */
+.balcard{position:relative;display:block;width:100%;text-align:center;background:#fff;border:0;
+  border-radius:16px;box-shadow:0 2px 12px rgba(16,24,40,.10);padding:24px;margin-bottom:24px}
+button.balcard{cursor:pointer}
+button.balcard:active{background:#FAFBFC}
+.balcard .k{display:block;font-family:var(--font-display);font-size:16px;font-weight:700;color:#012169}
+.balcard .v{display:block;font-family:var(--font-display);font-size:32px;font-weight:400;color:#555555;margin-top:8px}
+.balcard .n{display:block;font-size:14px;color:var(--muted);margin-top:8px}
+.balcard .chev{position:absolute;right:24px;top:50%;transform:translateY(-50%);
+  color:var(--orange);display:flex}
 .totalcard{border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;text-align:center;margin-bottom:8px}
 .totalcard .k{font-family:var(--font-display);font-size:16px;font-weight:500;color:#012169}
 /* Balance del card de monto: Neo Sans Std Regular 32 */
@@ -347,10 +366,6 @@ textarea.inp{height:auto;min-height:96px;padding:16px}
 .radio{width:22px;height:22px;border-radius:11px;border:2px solid #C9CFD6;flex:0 0 22px;display:flex;align-items:center;justify-content:center}
 .radio.on{border-color:var(--orange)}
 .radio.on i{width:12px;height:12px;border-radius:6px;background:var(--orange);display:block}
-.switch{width:48px;height:28px;border-radius:14px;background:#D5DAE0;position:relative;cursor:pointer;flex:0 0 48px;transition:background .18s;border:0}
-.switch i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:11px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .18s;display:block}
-.switch.on{background:var(--orange)}
-.switch.on i{left:23px}
 
 /* Éxito */
 .success{position:relative;text-align:center;padding-top:16px}
@@ -707,7 +722,6 @@ const I = {
   cash:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6.84839 13.0166C8.11259 11.9208 9.42277 11.9581 10.5916 12.1357L10.6003 12.1367C11.3097 12.2528 11.8661 12.4426 12.3269 12.5723C12.7909 12.7028 13.2349 12.7998 13.8523 12.7998H14.9177C15.4068 12.7999 15.8693 12.9982 16.2097 13.3477C16.4563 13.6009 16.621 13.9172 16.6931 14.2559L18.7546 13.3779C18.958 13.2884 19.1795 13.2314 19.4119 13.2188L19.4529 13.2178C19.6626 13.2178 19.8648 13.2624 20.0476 13.3389C20.2247 13.413 20.402 13.5264 20.5535 13.6855L20.5544 13.6846C20.5575 13.6878 20.5602 13.6921 20.5632 13.6953C20.5643 13.6964 20.5661 13.6971 20.5671 13.6982L20.5662 13.6992C20.7039 13.844 20.8134 14.0105 20.8875 14.1973C20.9599 14.38 21.0007 14.5812 21.0007 14.7881C21.0007 15.061 20.9349 15.3374 20.7869 15.5908C20.6468 15.8305 20.4471 16.0228 20.2107 16.1572L20.2117 16.1592L16.9021 18.1357V18.1367C16.2504 18.525 15.5064 18.7373 14.741 18.7373H7.41675L5.38159 20.7783C5.08915 21.0715 4.61432 21.0716 4.32105 20.7793C4.02781 20.4868 4.02672 20.012 4.31909 19.7188L6.57398 17.458L6.68823 17.3643C6.81073 17.2823 6.95564 17.2373 7.10523 17.2373H14.741C15.2271 17.2373 15.7063 17.1022 16.1335 16.8477L19.4421 14.8721L19.4695 14.8564C19.4795 14.851 19.4865 14.8442 19.4919 14.835C19.4943 14.8309 19.4963 14.826 19.4978 14.8203C19.4993 14.8143 19.5007 14.8039 19.5007 14.7881C19.5007 14.7808 19.4995 14.7666 19.4929 14.75C19.4903 14.7434 19.487 14.7384 19.4802 14.7314C19.4784 14.7296 19.4761 14.7274 19.4744 14.7256C19.4731 14.7249 19.471 14.7237 19.4685 14.7227C19.4668 14.722 19.4651 14.7212 19.4636 14.7207C19.4311 14.7254 19.396 14.7338 19.3591 14.75L19.3513 14.7539L15.6433 16.335L15.6423 16.334C15.639 16.3354 15.635 16.3355 15.6316 16.3369C15.4088 16.4337 15.1671 16.4863 14.9177 16.4863C14.8983 16.4863 14.8792 16.4848 14.8601 16.4834H11.0154C10.6012 16.4834 10.2655 16.1475 10.2654 15.7334C10.2656 15.3193 10.6013 14.9834 11.0154 14.9834H14.9246C14.9606 14.9834 14.9981 14.9756 15.0369 14.9609C15.0721 14.9455 15.1057 14.9232 15.1355 14.8926L15.1404 14.8877C15.1968 14.8306 15.235 14.7417 15.2351 14.6436C15.235 14.5494 15.1991 14.46 15.1355 14.3945C15.0734 14.3308 14.9963 14.2999 14.9177 14.2998H13.8523C13.0494 14.2998 12.4608 14.1676 11.9207 14.0156C11.3798 13.8634 10.9612 13.7163 10.366 13.6182C9.35181 13.464 8.599 13.4868 7.83765 14.1426L4.25562 17.417C3.94987 17.6964 3.4755 17.6749 3.19605 17.3691C2.91707 17.0634 2.93832 16.5889 3.2439 16.3096L6.83276 13.0293L6.84839 13.0166ZM14.0076 4C14.4216 4.00019 14.7576 4.3359 14.7576 4.75V5.10449H15.6218C16.036 5.10451 16.3717 5.44039 16.3718 5.85449C16.3718 6.2687 16.036 6.60448 15.6218 6.60449H13.4675C13.39 6.6046 13.3049 6.63843 13.2419 6.70312C13.1776 6.76941 13.1385 6.86237 13.1384 6.96289C13.1384 7.06338 13.1777 7.15634 13.2419 7.22266C13.3059 7.28834 13.3877 7.32119 13.4675 7.32129H14.5427C15.0331 7.32129 15.5028 7.52433 15.8425 7.87305C16.1807 8.22041 16.3718 8.68947 16.3718 9.17969C16.3718 9.66994 16.1807 10.1389 15.8425 10.4863C15.5532 10.7834 15.1715 10.9747 14.7576 11.0244V11.3857C14.7574 11.7997 14.4215 12.1356 14.0076 12.1357C13.5935 12.1357 13.2577 11.7998 13.2576 11.3857V11.0381H12.3884C11.9744 11.0379 11.6385 10.7021 11.6384 10.2881C11.6386 9.8741 11.9745 9.53828 12.3884 9.53809H13.9099C13.9418 9.53394 13.9746 9.53126 14.0076 9.53125C14.0404 9.53126 14.0726 9.53399 14.1042 9.53809H14.5427C14.6226 9.53809 14.7043 9.50519 14.7683 9.43945C14.8327 9.37313 14.8718 9.28031 14.8718 9.17969C14.8718 9.07917 14.8326 8.98621 14.7683 8.91992C14.7053 8.85532 14.6203 8.82129 14.5427 8.82129H13.4675C12.9722 8.82119 12.5064 8.61731 12.1677 8.26953C11.8297 7.92215 11.6384 7.45303 11.6384 6.96289C11.6385 6.47271 11.8296 6.00361 12.1677 5.65625C12.4585 5.35766 12.8449 5.1672 13.2576 5.11816V4.75C13.2576 4.33583 13.5934 4.00008 14.0076 4Z" fill="currentColor"/></svg>',
   addu:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17.7675 14.4756C18.1814 14.4757 18.5173 14.8116 18.5175 15.2256V16.9834H20.2528C20.6666 16.9837 21.0024 17.3197 21.0028 17.7334C21.0028 18.1475 20.6668 18.4831 20.2528 18.4834H18.5175V20.2461C18.5173 20.6601 18.1815 20.9959 17.7675 20.9961C17.3533 20.9961 17.0176 20.6602 17.0175 20.2461V18.4834H15.2821C14.8679 18.4834 14.5321 18.1476 14.5321 17.7334C14.5325 17.3195 14.8681 16.9834 15.2821 16.9834H17.0175V15.2256C17.0177 14.8115 17.3534 14.4756 17.7675 14.4756ZM9.84071 12.3486C11.902 12.3486 13.763 13.2169 15.0829 14.6074C15.368 14.9079 15.355 15.3828 15.0546 15.668C14.7541 15.9531 14.2792 15.9411 13.994 15.6406C12.9437 14.5341 11.4711 13.8486 9.84071 13.8486C7.3846 13.8488 5.27763 15.4094 4.45204 17.6162C4.30674 18.0038 3.87494 18.2006 3.4872 18.0557C3.0994 17.9104 2.90264 17.4777 3.04774 17.0898C4.08257 14.3242 6.73072 12.3488 9.84071 12.3486ZM9.84071 4.25781C12.0594 4.25786 13.8445 6.07401 13.8446 8.29688C13.8444 10.5197 12.0593 12.3349 9.84071 12.335C7.62213 12.3349 5.83697 10.5196 5.83681 8.29688C5.83689 6.07404 7.62208 4.25792 9.84071 4.25781ZM9.84071 5.75781C8.46556 5.75792 7.33689 6.88733 7.33681 8.29688C7.33697 9.70634 8.46562 10.8348 9.84071 10.835C11.2159 10.8349 12.3445 9.70638 12.3446 8.29688C12.3445 6.88729 11.2159 5.75786 9.84071 5.75781ZM17.1278 4C18.7436 4.00004 20.0399 5.32206 20.0399 6.93555C20.0398 8.5489 18.7435 9.87007 17.1278 9.87012C15.5122 9.87001 14.2159 8.54886 14.2157 6.93555C14.2157 5.3221 15.5121 4.00011 17.1278 4ZM17.1278 5.5C16.3556 5.50011 15.7157 6.13539 15.7157 6.93555C15.7159 7.73556 16.3557 8.37001 17.1278 8.37012C17.9 8.37007 18.5398 7.7356 18.5399 6.93555C18.5399 6.13534 17.9001 5.50004 17.1278 5.5Z" fill="currentColor"/><path d="M20.1949 11.5855C19.4048 10.7975 18.3166 10.3181 17.1207 10.329C15.9642 10.3399 14.9155 10.8084 14.147 11.5637" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   invite:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M8.57814 12.0273C9.77245 11.922 10.781 12.1363 11.6172 12.3555C12.5052 12.5883 13.0661 12.7773 13.5977 12.7773H15.291C16.2302 12.7773 16.9246 13.4711 17.0801 14.3076L18.6865 13.5947L18.7119 13.584C18.8722 13.5199 19.0643 13.4532 19.1504 13.4209C19.264 13.3783 19.3076 13.3557 19.3272 13.3428L19.4483 13.2773C20.2326 12.9413 20.9867 13.2666 21.4151 13.8145L21.4961 13.9268L21.5234 13.9707C21.9587 14.7327 21.7648 15.7714 20.9307 16.248L20.9229 16.2529L20.9219 16.252L20.3584 16.5664L17.4307 18.3105L17.4297 18.3096C16.6088 18.8266 15.7195 19.043 14.7891 19.043H7.00001L4.70802 21.2197C4.40771 21.505 3.93276 21.4927 3.64747 21.1924C3.36261 20.8921 3.37485 20.418 3.67482 20.1328L6.1836 17.75L6.29591 17.6611C6.41568 17.5846 6.55611 17.543 6.70021 17.543H14.7891C15.4819 17.543 16.0911 17.3854 16.6445 17.0332L16.6631 17.0215L19.6104 15.2656C19.6167 15.2618 19.6234 15.2585 19.6299 15.2549L20.1865 14.9453L20.2227 14.9141C20.2326 14.9007 20.2403 14.8843 20.2451 14.8643C20.2542 14.8265 20.2503 14.7803 20.2295 14.7344C20.1884 14.6816 20.1482 14.6572 20.124 14.6484C20.1109 14.6437 20.0996 14.6423 20.0899 14.6426C20.0833 14.6428 20.074 14.6454 20.0606 14.6494C19.9234 14.728 19.7879 14.7839 19.6777 14.8252C19.5128 14.887 19.4226 14.9153 19.2695 14.9766L15.9092 16.4707C15.8133 16.5133 15.7094 16.5352 15.6045 16.5352H10.9639C10.5498 16.535 10.214 16.1992 10.2139 15.7852C10.2139 15.3967 10.5094 15.0774 10.8877 15.0391L10.9639 15.0352H14.7539L15.2803 14.9814C15.3879 14.9515 15.4802 14.8907 15.5401 14.8174C15.6021 14.7412 15.6177 14.6706 15.6113 14.6133C15.5856 14.3827 15.4284 14.2773 15.291 14.2773H13.5977C12.8126 14.2773 11.9626 13.996 11.2363 13.8057C10.4623 13.6028 9.65655 13.4419 8.7256 13.5215C8.51681 13.5507 8.20338 13.678 7.77931 13.9502C7.36105 14.2187 6.898 14.5852 6.40724 15.0107C5.91796 15.435 5.41872 15.9018 4.92286 16.3652C4.43227 16.8237 3.94178 17.2822 3.48829 17.6709C3.1738 17.9405 2.70024 17.9043 2.43068 17.5898C2.16113 17.2754 2.19728 16.8018 2.51173 16.5322C2.93596 16.1686 3.40165 15.7338 3.89845 15.2695C4.39026 14.8099 4.91075 14.3237 5.42482 13.8779C5.93729 13.4335 6.46215 13.0127 6.96876 12.6875C7.46185 12.371 8.00699 12.0983 8.55079 12.0303L8.57814 12.0273ZM13.5 8.25C15.1613 8.25005 16.6435 9.0112 17.6553 10.2012C17.9236 10.5168 17.8859 10.9905 17.5703 11.2588C17.2547 11.5269 16.781 11.4884 16.5127 11.1729C15.7641 10.2923 14.6887 9.75005 13.5 9.75C12.3133 9.75008 11.2367 10.292 10.4873 11.1729C10.2189 11.4882 9.74515 11.5262 9.4297 11.2578C9.11479 10.9894 9.07674 10.5165 9.34474 10.2012C10.357 9.0113 11.8404 8.25008 13.5 8.25ZM13.5 2.25C15.1569 2.25 16.5 3.59315 16.5 5.25C16.5 6.90685 15.1569 8.25 13.5 8.25C11.8432 8.24999 10.5 6.90685 10.5 5.25C10.5 3.59315 11.8432 2.25001 13.5 2.25ZM13.5 3.75C12.6716 3.75001 12 4.42158 12 5.25C12 6.07842 12.6716 6.74999 13.5 6.75C14.3284 6.75 15 6.07843 15 5.25C15 4.42157 14.3284 3.75 13.5 3.75Z" fill="currentColor"/></svg>',
-  bell:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M6.5 10a5.5 5.5 0 0 1 11 0c0 4 1.6 5.6 1.6 5.6H4.9S6.5 14 6.5 10Z"/><path d="M10 18.6a2.2 2.2 0 0 0 4 0"/></svg>',
   box:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="2.8" y="4.5" width="18.4" height="4.5" rx="1.2"/><path d="M4.5 9v9.2a1.3 1.3 0 0 0 1.3 1.3h12.4a1.3 1.3 0 0 0 1.3-1.3V9"/><path d="M9.6 13h4.8"/></svg>',
   cal:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="4" width="17" height="16" rx="2.4"/><path d="M2.5 8.6h17M7 2.2v3.6M15 2.2v3.6"/></svg>',
   smile:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 21C11.1824 21 10.3912 20.8912 9.62647 20.6735C8.86765 20.4618 8.15294 20.1559 7.48235 19.7559C6.81176 19.3618 6.20294 18.8912 5.65588 18.3441C5.10882 17.7971 4.63529 17.1882 4.23529 16.5176C3.84118 15.8471 3.53529 15.1324 3.31765 14.3735C3.10588 13.6088 3 12.8176 3 12C3 11.1765 3.10588 10.3853 3.31765 9.62647C3.53529 8.86765 3.84118 8.15294 4.23529 7.48235C4.63529 6.81176 5.10882 6.20294 5.65588 5.65588C6.20294 5.10882 6.80882 4.63824 7.47353 4.24412C8.14412 3.84412 8.85882 3.53824 9.61765 3.32647C10.3824 3.10882 11.1735 3 11.9912 3C12.8147 3 13.6059 3.10882 14.3647 3.32647C15.1294 3.53824 15.8441 3.84412 16.5088 4.24412C17.1794 4.63824 17.7882 5.10882 18.3353 5.65588C18.8882 6.20294 19.3618 6.81176 19.7559 7.48235C20.1559 8.15294 20.4618 8.86765 20.6735 9.62647C20.8912 10.3853 21 11.1765 21 12C21 12.8176 20.8912 13.6088 20.6735 14.3735C20.4618 15.1324 20.1559 15.8471 19.7559 16.5176C19.3618 17.1882 18.8912 17.7971 18.3441 18.3441C17.7971 18.8912 17.1882 19.3618 16.5176 19.7559C15.8471 20.1559 15.1324 20.4618 14.3735 20.6735C13.6147 20.8912 12.8235 21 12 21ZM12 19.5C12.8353 19.5 13.6265 19.3735 14.3735 19.1206C15.1265 18.8676 15.8147 18.5118 16.4382 18.0529C17.0618 17.5941 17.6 17.0529 18.0529 16.4294C18.5118 15.8059 18.8647 15.1206 19.1118 14.3735C19.3647 13.6206 19.4912 12.8294 19.4912 12C19.4912 11.1647 19.3647 10.3735 19.1118 9.62647C18.8588 8.87353 18.5029 8.18529 18.0441 7.56176C17.5912 6.93824 17.0529 6.39706 16.4294 5.93824C15.8059 5.47941 15.1176 5.12647 14.3647 4.87941C13.6176 4.62647 12.8265 4.5 11.9912 4.5C11.1559 4.5 10.3647 4.62647 9.61765 4.87941C8.87059 5.12647 8.18529 5.47941 7.56176 5.93824C6.93824 6.39706 6.39706 6.93824 5.93824 7.56176C5.48529 8.18529 5.13235 8.87353 4.87941 9.62647C4.63235 10.3735 4.50882 11.1647 4.50882 12C4.50882 12.8353 4.63235 13.6294 4.87941 14.3824C5.13235 15.1294 5.48529 15.8147 5.93824 16.4382C6.39706 17.0618 6.93824 17.6029 7.56176 18.0618C8.18529 18.5206 8.87059 18.8735 9.61765 19.1206C10.3706 19.3735 11.1647 19.5 12 19.5ZM9.37941 11.1971C9.19118 11.1971 9.01471 11.1382 8.85 11.0206C8.69118 10.9029 8.56176 10.75 8.46176 10.5618C8.36765 10.3676 8.32059 10.1618 8.32059 9.94412C8.32059 9.71471 8.36765 9.50588 8.46176 9.31765C8.56176 9.12941 8.69118 8.97941 8.85 8.86765C9.00882 8.75 9.18529 8.69118 9.37941 8.69118C9.57353 8.69118 9.75 8.74706 9.90882 8.85882C10.0735 8.97059 10.2029 9.12353 10.2971 9.31765C10.3971 9.50588 10.4471 9.71471 10.4471 9.94412C10.4471 10.1676 10.3971 10.3765 10.2971 10.5706C10.1971 10.7588 10.0647 10.9118 9.9 11.0294C9.74118 11.1412 9.56765 11.1971 9.37941 11.1971ZM14.6294 11.1971C14.4412 11.1971 14.2647 11.1412 14.1 11.0294C13.9353 10.9118 13.8029 10.7588 13.7029 10.5706C13.6029 10.3765 13.5529 10.1676 13.5529 9.94412C13.5529 9.71471 13.6 9.50588 13.6941 9.31765C13.7941 9.12353 13.9265 8.97059 14.0912 8.85882C14.2559 8.74706 14.4353 8.69118 14.6294 8.69118C14.8235 8.69118 15 8.75 15.1588 8.86765C15.3176 8.97941 15.4441 9.12941 15.5382 9.31765C15.6324 9.50588 15.6794 9.71471 15.6794 9.94412C15.6794 10.1618 15.6294 10.3676 15.5294 10.5618C15.4353 10.75 15.3088 10.9029 15.15 11.0206C14.9912 11.1382 14.8176 11.1971 14.6294 11.1971ZM12 18.0441C11.2412 18.0441 10.5294 17.9176 9.86471 17.6647C9.2 17.4059 8.60882 17.0529 8.09118 16.6059C7.57353 16.1529 7.15 15.6324 6.82059 15.0441C6.49118 14.4559 6.28529 13.8324 6.20294 13.1735C6.16765 12.9088 6.22353 12.7206 6.37059 12.6088C6.51765 12.4912 6.70882 12.4676 6.94412 12.5382C7.80294 12.7912 8.64118 12.9853 9.45882 13.1206C10.2765 13.2559 11.1235 13.3235 12 13.3235C12.8765 13.3235 13.7235 13.2559 14.5412 13.1206C15.3647 12.9853 16.2029 12.7912 17.0559 12.5382C17.2912 12.4676 17.4824 12.4882 17.6294 12.6C17.7765 12.7118 17.8324 12.9029 17.7971 13.1735C17.7147 13.8324 17.5088 14.4559 17.1794 15.0441C16.8559 15.6324 16.4324 16.1529 15.9088 16.6059C15.3912 17.0529 14.8 17.4059 14.1353 17.6647C13.4706 17.9176 12.7588 18.0441 12 18.0441ZM11.9912 15.3088C12.6912 15.3088 13.4 15.2647 14.1176 15.1765C14.8353 15.0824 15.4912 14.9618 16.0853 14.8147C16.1676 14.7853 16.2324 14.7529 16.2794 14.7176C16.3265 14.6765 16.3706 14.6265 16.4118 14.5676C16.4706 14.4559 16.5353 14.3206 16.6059 14.1618C16.6824 14.0029 16.7441 13.8294 16.7912 13.6412C16.8029 13.5765 16.7765 13.55 16.7118 13.5618C16 13.7559 15.2412 13.9147 14.4353 14.0382C13.6353 14.1559 12.8206 14.2147 11.9912 14.2147C11.1618 14.2147 10.3471 14.1559 9.54706 14.0382C8.74706 13.9147 7.98824 13.7559 7.27059 13.5618C7.20588 13.55 7.17941 13.5765 7.19118 13.6412C7.24412 13.8353 7.30294 14.0088 7.36765 14.1618C7.43824 14.3147 7.50588 14.45 7.57059 14.5676C7.64118 14.6912 7.75294 14.7735 7.90588 14.8147C8.5 14.9618 9.15294 15.0824 9.86471 15.1765C10.5824 15.2647 11.2912 15.3088 11.9912 15.3088Z" fill="currentColor"/></svg>',
@@ -777,7 +791,7 @@ const state = {
     {
       id:'g1', type:'gastos', emoji:'🏔️', name:'Viaje a Jarabacoa', category:'viajes',
       owner:'u1', admins:['u1'], members:['u1','u2','u3','u4'], accountId:'a1', archived:false,
-      perms:{addExpense:'todos', join:'aprobacion', invite:'todos'}, reminders:true,
+      perms:{addExpense:'todos', join:'aprobacion', invite:'todos'},
       requests:[{id:'r1', userName:'María Gómez', full:'MARÍA ALTAGRACIA GÓMEZ REYES'}],
       expenses:[
         {id:'e1', title:'Cabaña 2 noches', emoji:'🏠', category:'hogar', amount:3500, paidBy:'u1', date:'8/Jul/2026',
@@ -791,7 +805,7 @@ const state = {
     {
       id:'g2', type:'gastos', emoji:'🍕', name:'Cena de los viernes', category:'comida',
       owner:'u1', admins:['u1','u2'], members:['u1','u2','u3'], accountId:'a1', archived:false,
-      perms:{addExpense:'admins', join:'enlace', invite:'admins'}, reminders:true, requests:[],
+      perms:{addExpense:'admins', join:'enlace', invite:'admins'}, requests:[],
       expenses:[
         {id:'e4', title:'Pizza', emoji:'🍔', category:'comida', amount:1200, paidBy:'u2', date:'10/Jul/2026',
          split:{u1:400,u2:400,u3:400}, paid:{u2:true,u1:false,u3:false}}
@@ -800,14 +814,14 @@ const state = {
     {
       id:'g3', type:'colecta', emoji:'🎁', name:'Regalo para Ana', category:'regalos',
       owner:'u1', admins:['u1'], members:['u1','u2','u3','u5'], accountId:'a2', archived:false,
-      perms:{addExpense:'admins', join:'enlace', invite:'todos'}, reminders:true, requests:[],
+      perms:{addExpense:'admins', join:'enlace', invite:'todos'}, requests:[],
       perPerson:1500, deadline:'30/Jul/2026',
       contributions:{u1:false,u2:true,u3:false,u5:false}
     },
     {
       id:'g4', type:'recurrente', emoji:'📶', name:'Internet apartamento', category:'servicios',
       owner:'u3', admins:['u3','u1'], members:['u1','u3','u4'], accountId:'a1', archived:false,
-      perms:{addExpense:'admins', join:'aprobacion', invite:'admins'}, reminders:true, requests:[],
+      perms:{addExpense:'admins', join:'aprobacion', invite:'admins'}, requests:[],
       amount:2100, frequency:'Mensual', payDay:18, nextDate:'18/Ago/2026',
       periods:[
         {id:'p1', label:'Mes de julio', due:'18/Jul/2026', split:{u1:700,u3:700,u4:700}, paid:{u3:true,u1:false,u4:false}},
@@ -817,7 +831,7 @@ const state = {
     {
       id:'g5', type:'gastos', emoji:'🎉', name:'Junte del finde', category:'comida',
       owner:'u2', admins:['u2'], members:['u2','u6','u7'], accountId:'a1', archived:false,
-      perms:{addExpense:'todos', join:'enlace', invite:'todos'}, reminders:true, requests:[],
+      perms:{addExpense:'todos', join:'enlace', invite:'todos'}, requests:[],
       /* El administrador ya dejó los nombres puestos; nadie los ha reclamado todavía */
       unclaimed:['u6','u7'],
       expenses:[
@@ -958,7 +972,7 @@ function confettiHtml(n){
 }
 
 function shell(o){
-  return '<div class="screen"'+(o.pay?' data-pay="1"':'')+'>'
+  return '<div class="screen"'+(o.pay?' data-pay="1"':'')+(o.screen?' data-screen="'+o.screen+'"':'')+'>'
     + (o.overlay || '')
     /* La cabecera va dentro del área que scrollea: no queda anclada.
        flow:true baja además el CTA al final del contenido. */
@@ -987,12 +1001,18 @@ function scrHome(){
   const pendingJoins = state.groups.filter(x=>x.pendingMe);
 
   let body = '';
-  body += '<div class="card" style="margin:8px 0 16px;padding:16px">'
-    + '<div style="font-family:var(--font-display);font-size:16px;font-weight:500;color:#012169">Tu balance pendiente</div>'
-    + '<div style="font-family:var(--font-display);font-size:32px;font-weight:400;color:'+(due>0?'#555555':'#0E7C5A')+';margin:8px 0 4px">'+money(due)+'</div>'
-    + '<div class="small muted" style="margin-bottom:'+(due>0?'16px':'0')+'">'+(due>0? allDues().length+' pago(s) por realizar' : 'Estás al día. ¡Bien ahí!')+'</div>'
-    + (due>0?'<button class="btn btn-primary" data-a="payAll">Pagar balance total</button>':'')
-  + '</div>';
+  /* La tarjeta entera abre el pago; el chevron es la única pista */
+  const nPagos = allDues().length;
+  body += due > 0
+    ? '<button class="balcard" data-a="payAll">'
+      + '<span class="k">Balance pendiente</span>'
+      + '<span class="v">'+money(due)+'</span>'
+      + '<span class="n">'+nPagos+(nPagos===1?' pago por realizar':' pagos por realizar')+'</span>'
+      + '<span class="chev">'+I.chev+'</span></button>'
+    : '<div class="balcard">'
+      + '<span class="k">Balance pendiente</span>'
+      + '<span class="v" style="color:#0E7C5A">'+money(0)+'</span>'
+      + '<span class="n">Estás al día. ¡Bien ahí!</span></div>';
 
   body += '<h2 class="t">¿Qué deseas hacer?</h2>';
   body += '<div class="tiles">'
@@ -1013,7 +1033,7 @@ function scrHome(){
     if(!mine.length) body += '<div class="empty" style="padding:24px">Aún no tienes grupos activos.</div>';
     mine.forEach(gr=>{
       body += '<button class="gcard" data-a="openGroup" data-id="'+gr.id+'">'
-        + '<span class="avatar">'+gr.emoji+'</span>'
+        + '<span class="avatar" data-gtype="'+gr.type+'">'+gr.emoji+'</span>'
         + '<span class="info"><span class="nm">'+esc(gr.name)+'</span><span class="mt">'+typeLabel(gr.type)+'</span></span>'
         + '</button>';
     });
@@ -1033,7 +1053,7 @@ function scrHome(){
     if(!totalPend) body += '<div class="empty" style="padding:24px">No tienes solicitudes pendientes.</div>';
     pendingJoins.forEach(gr=>{
       body += '<button class="gcard" data-a="openPending" data-id="'+gr.id+'">'
-        + '<span class="avatar">'+gr.emoji+'</span>'
+        + '<span class="avatar" data-gtype="'+gr.type+'">'+gr.emoji+'</span>'
         + '<span class="info"><span class="nm">'+esc(gr.name)+'</span><span class="mt">Esperando aprobación</span></span>'
         + '<span class="pill pend">Pendiente</span></button>';
     });
@@ -1061,7 +1081,9 @@ function scrHome(){
     + '<span class="txt">Ver el prototipo desde el lado de quien recibe el enlace.</span></span>'
     + '<span class="chev">'+I.chev+'</span></button>';
 
-  return shell({title:'Grupos de pago', noBack:true, body:body});
+  /* Chevron decorativo: en la app real vuelve al menú del banco */
+  return shell({title:'Grupos de pago', screen:'home', body:body,
+    leftHtml:'<span class="nav-ghost" aria-hidden="true">'+I.back+'</span>'});
 }
 
 /* ---------- Escáner QR (cámara simulada) ---------- */
@@ -1117,7 +1139,7 @@ function scrArchived(){
       + '<div class="glist">';
     lista.forEach(gr=>{
       b += '<button class="gcard" data-a="openGroup" data-id="'+gr.id+'">'
-        + '<span class="avatar">'+gr.emoji+'</span>'
+        + '<span class="avatar" data-gtype="'+gr.type+'">'+gr.emoji+'</span>'
         + '<span class="info"><span class="nm">'+esc(gr.name)+'</span>'
         + '<span class="mt">'+typeLabel(gr.type)+'</span></span>'
         + '<span class="pill pend">Archivado</span></button>';
@@ -1129,15 +1151,13 @@ function scrArchived(){
 
 /* Escenarios de invitación, solo para demostrar el prototipo */
 function scrSimulate(){
-  const opt = (gid,t,d)=>'<button class="card-btn" data-a="simInvite" data-gid="'+gid+'">'
-    + '<span><span class="ttl">'+t+'</span><span class="txt">'+d+'</span></span>'
+  const opt = (gid,t)=>'<button class="card-btn" data-a="simInvite" data-gid="'+gid+'">'
+    + '<span><span class="ttl">'+t+'</span></span>'
     + '<span class="chev">'+I.chev+'</span></button>';
   const b = '<p class="sub">Abre el prototipo como si otra persona recibiera el enlace del grupo. '
       + 'Elige el escenario que quieras ver.</p>'
-    + opt('g1','El grupo aún no tiene nombres',
-          'Escribes tu nombre. Como el grupo pide aprobación, la solicitud queda pendiente para el administrador.')
-    + opt('g5','El administrador ya asignó los nombres',
-          'Eliges tu nombre de la lista, o pones uno propio si no aparece. Entras directo al grupo.');
+    + opt('g1','El grupo aún no tiene nombres')
+    + opt('g5','El administrador ya asignó los nombres');
   return shell({title:'Simular invitación', body:b});
 }
 
@@ -1341,7 +1361,7 @@ function scrGroup(){
     + I.gear
     + (solicitudes ? '<span class="dot-count">'+solicitudes+'</span>' : '')
   + '</button>';
-  let b = '<div class="hero"><div class="em">'+gr.emoji+'</div><h2>'+esc(gr.name)+'</h2>'
+  let b = '<div class="hero"><div class="em" data-gtype="'+gr.type+'">'+gr.emoji+'</div><h2>'+esc(gr.name)+'</h2>'
         + '<span class="chip">'+typeLabel(gr.type)+'</span></div>';
 
   if(gr.type==='gastos'){
@@ -1631,7 +1651,7 @@ function scrExpense(){
 function scrPeriod(){
   const gr = g(state.params.gid); if(!gr) return scrHome();
   const p = gr.periods.find(x=>x.id===state.params.pid); if(!p) return scrGroup();
-  let b = '<div class="hero"><div class="em">'+gr.emoji+'</div><h2>'+esc(gr.name)+'</h2><span class="chip">'+esc(p.label)+'</span></div>'
+  let b = '<div class="hero"><div class="em" data-gtype="'+gr.type+'">'+gr.emoji+'</div><h2>'+esc(gr.name)+'</h2><span class="chip">'+esc(p.label)+'</span></div>'
     + '<div class="totalcard" style="margin-top:16px"><div class="k">Tu parte</div><div class="v">'+money(p.split[ME]||0)+'</div>'
     + '<div class="n">Monto total del período: '+money(gr.amount)+'</div></div>'
     + '<div class="card" style="margin-top:16px">'
@@ -1767,11 +1787,6 @@ function scrConfig(){
     + row('cfgInvite',I.invite,'Quién puede invitar', LBL_INV[gr.perms.invite])
     + row('cfgAccount',I.wallet,'Cuenta predeterminada para recibir pagos',
         acctOf(gr) ? acctOf(gr).name+' · '+acctOf(gr).num : 'Se elige al crear cada gasto');
-
-  b += '<div class="card-btn plain" style="cursor:default"><span style="display:flex;align-items:center;gap:16px">'
-    + '<span style="color:var(--navy)">'+I.bell+'</span><span><span class="ttl" style="color:#37424F;font-size:16px">Recordatorios</span>'
-    + '<span class="txt">Avisar a los integrantes con pagos pendientes</span></span></span>'
-    + '<button class="switch '+(gr.reminders?'on':'')+'" data-a="toggleReminders" data-gid="'+gr.id+'"><i></i></button></div>';
 
   /* Solicitudes pendientes */
   const abiertoSol = accOpen('pendientes', gr.requests.length);
@@ -1929,7 +1944,7 @@ function scrJoin(){
   const nombre = f.joinName || '';
   const ok = elegir ? !!f.joinPick : nombre.trim().length > 1;
 
-  let b = '<div class="join-head"><span class="join-em">'+gr.emoji+'</span>'
+  let b = '<div class="join-head"><span class="join-em" data-gtype="'+gr.type+'">'+gr.emoji+'</span>'
       + '<h2>'+esc(gr.name)+'</h2></div>'
     + '<div class="center" style="margin-bottom:24px"><span class="chip">'+typeLabel(gr.type)+'</span></div>'
     + '<div class="section-title" style="margin-top:0">Creado por:</div>'
@@ -2480,7 +2495,6 @@ document.addEventListener('click', e=>{
     case 'cfgAccount': go('cfgAccount',{gid:gid}); break;
     case 'setPerm': { const gr=g(gid); gr.perms[d.key]=d.val; render(null,true); toast('Configuración actualizada'); break; }
     case 'setGroupAccount': { const gr=g(gid); gr.accountId=d.id; render(null,true); toast('Cuenta actualizada'); break; }
-    case 'toggleReminders': { const gr=g(gid); gr.reminders=!gr.reminders; render(null,true); break; }
     case 'askAdmin': openModal({type:'confirmAdmin', gid:gid, id:d.id}); break;
     case 'doAdmin': { const gr=g(d.gid); if(!gr.admins.includes(d.id)) gr.admins.push(d.id);
       state.modal=null; state.form={adminQuery:''}; back(); toast('Administrador agregado'); break; }
@@ -2561,7 +2575,7 @@ function createGroup(){
     id:id, type:f.type, emoji:f.emoji||'🎉', name:f.name.trim(), category:f.category||'otros',
     owner:ME, admins:[ME], members:commitPeople(f.people),
     accountId: f.type==='gastos' ? null : f.accountId,
-    archived:false, reminders:true, requests:[],
+    archived:false, requests:[],
     perms:{addExpense:'todos', join:'aprobacion', invite:'todos'}
   };
   if(f.type==='gastos'){ base.expenses=[]; }
