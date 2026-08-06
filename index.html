@@ -663,7 +663,35 @@ button.personcard:active{background:#FAFBFC}
   font-size:16px;color:var(--navy);cursor:pointer;text-align:left}
 .cat-grid button:active{background:#F7F8FA}
 .receipt-k{font-size:12px;font-weight:800;letter-spacing:1.4px;color:var(--navy);text-align:center}
-.toast{position:absolute;left:24px;right:24px;bottom:24px;background:#2A3340;color:#fff;padding:16px 16px;border-radius:12px;font-size:14px;z-index:60;box-shadow:var(--shadow-2);animation:up .2s}
+.toast{position:absolute;left:24px;right:24px;bottom:24px;background:#2A3340;color:#fff;padding:16px 16px;border-radius:12px;font-size:14px;z-index:60;box-shadow:var(--shadow-2);animation:up .2s;
+  display:flex;align-items:center;gap:12px}
+.toast>span{flex:1;line-height:1.45}
+/* Aviso de campos pendientes: mismo lenguaje visual que los snackbar naranja */
+.toast.warn{background:#FFFAF1;color:#3B4559;border:1px solid #F7D2AB}
+.toast.warn svg{flex:0 0 24px;color:var(--orange)}
+
+/* ---- Campos pendientes tras intentar enviar el formulario ----
+   Destello momentáneo, no un estado permanente: el campo parpadea dos veces
+   y vuelve a su color. Se marca el fondo y no solo el borde porque en piezas
+   pequeñas como el botón de emoji un borde fino pasa desapercibido. */
+@keyframes destello{
+  0%,100%{background-color:#fff;border-color:var(--line)}
+  30%,70%{background-color:#FFF1DA;border-color:#FFF1DA}
+}
+@keyframes destelloSel{
+  0%,100%{background-color:var(--sel);border-color:var(--orange)}
+  30%,70%{background-color:#FFF1DA;border-color:#FFF1DA}
+}
+.field.err .inp,.emoji-btn.err,.select-like.err,.acct.err{animation:destello .55s ease 2}
+.splitbox.err{animation:destelloSel .55s ease 2}
+/* Las filas tienen fondo propio y taparían el destello de la caja */
+.splitbox.err .splitrow{background:transparent}
+/* CTA en gris pero pulsable: al tocarlo explica qué falta */
+.btn.btn-off{background:#F1F2F4;color:#9AA3AE}
+@media (prefers-reduced-motion:reduce){
+  .field.err .inp,.emoji-btn.err,.select-like.err,.acct.err,.splitbox.err{animation:none;border-color:#ED8B00}
+}
+
 .hr{height:1px;background:var(--line-2);margin:16px 0}
 .linkbox{display:flex;align-items:center;gap:8px;background:#F5F6F8;border-radius:10px;padding:16px 16px;font-size:13px;color:var(--ink-2);word-break:break-all;margin-bottom:8px}
 .locked{text-align:center;padding:32px 16px}
@@ -831,6 +859,7 @@ const state = {
   form:{},
   pay:{},
   persona:'admin',      // 'admin' | 'invitado'
+  errors:[],            // campos pendientes marcados tras un intento de envío
   /* El usuario arranca sin grupos: el prototipo se recorre desde cero.
      Estos dos existen solo para simular invitaciones y no lo incluyen. */
   groups:[
@@ -955,8 +984,8 @@ function home(){ if(typeof stopScan==='function') stopScan();
   if(state.pay) state.pay.loading = false; state.stack=[]; state.route='home'; state.params={}; state.modal=null; state.persona='admin'; render('enter-back'); }
 function openModal(m){ state.modal=m; state.modalShown=false; render(null,true); }
 function closeModal(){ state.modal=null; state.modalShown=false; render(null,true); }
-function toast(msg){
-  state.toast=msg; render(null,true);
+function toast(msg, tipo){
+  state.toast=msg; state.toastTipo=tipo||''; render(null,true);
   clearTimeout(window.__tt); window.__tt=setTimeout(()=>{ state.toast=null; render(null,true); },2400);
 }
 
@@ -1199,11 +1228,18 @@ function scrSimulate(){
     + '<span class="chev">'+I.chev+'</span></button>';
   /* Sin grupos propios no hay dónde recibir una solicitud */
   const mios = state.groups.filter(x=>!x.archived && isAdmin(x));
+  const esperando = state.groups.find(x=>x.pendingMe);
   const b = '<p class="sub">Abre el prototipo como si otra persona recibiera el enlace del grupo, '
       + 'o como si alguien pidiera unirse al tuyo.</p>'
     + '<div class="section-title" style="margin-top:0">Recibes una invitación</div>'
     + opt('s1','El grupo aún no tiene nombres')
     + opt('s2','El administrador ya asignó los nombres')
+    + (esperando
+        ? '<div class="section-title">Tu solicitud</div>'
+          + '<button class="card-btn" data-a="simAccepted">'
+          + '<span><span class="ttl">Aceptan tu entrada a “'+esc(esperando.name)+'”</span></span>'
+          + '<span class="chev">'+I.chev+'</span></button>'
+        : '')
     + '<div class="section-title">Te llega una solicitud</div>'
     + (mios.length
         ? '<button class="card-btn" data-a="simRequest" data-gid="'+mios[0].id+'">'
@@ -1237,9 +1273,62 @@ function scrNewGroupType(){
   return shell({title:'Nuevo grupo de pago', body:b});
 }
 
+/* Campos que faltan por llenar. Se recalcula en cada render, así que
+   al completar uno deja de estar marcado sin tener que reintentar. */
+function faltantes(){
+  const f = state.form, falta = [];
+  const vacio = v => !v || !String(v).trim();
+  if(state.route==='addExpense'){
+    const gr = g(state.params.gid);
+    if(vacio(f.title)) falta.push('title');
+    if(!f.category) falta.push('category');
+    if(!(Number(f.amount)>0)) falta.push('amount');
+    if(vacio(f.date)) falta.push('date');
+    if(!gr || !gr.members.some(m=>f.who && f.who[m])) falta.push('who');
+    if((f.paidBy||ME)===ME && !f.accountId) falta.push('account');
+    return falta;
+  }
+  if(vacio(f.name)) falta.push('name');
+  if(!f.emoji) falta.push('emoji');
+  /* La colecta es el único tipo sin campo de categoría */
+  if(f.type!=='colecta' && !f.category) falta.push('category');
+  if(f.type==='colecta'){
+    if(!(Number(f.perPerson)>0)) falta.push('perPerson');
+    if(vacio(f.deadline)) falta.push('deadline');
+    if(!f.accountId) falta.push('account');
+  }
+  if(f.type==='recurrente'){
+    if(!(Number(f.amount)>0)) falta.push('amount');
+    if(!f.payDay) falta.push('payDay');
+    if(!f.accountId) falta.push('account');
+  }
+  return falta;
+}
+/* Devuelve true si hay campos pendientes: los marca, avisa y lleva al primero */
+function avisarFaltantes(){
+  const falta = faltantes();
+  if(!falta.length){ state.errors = []; return false; }
+  state.errors = falta;
+  render(null, true);
+  /* Aviso momentáneo: pasado el destello los campos vuelven a su color */
+  clearTimeout(window.__errT);
+  window.__errT = setTimeout(()=>{ state.errors=[]; render(null,true); }, 1200);
+  toast(falta.length===1 ? 'Te falta un campo por llenar'
+                         : 'Te faltan '+falta.length+' campos por llenar', 'warn');
+  const el = document.querySelector('.err');
+  if(el) el.scrollIntoView({block:'center', behavior:'smooth'});
+  return true;
+}
+/* Marca visual del campo, solo tras un intento fallido */
+function err(k){ return (state.errors||[]).includes(k) ? ' err' : ''; }
+/* Se descartan los que el usuario ya resolvió */
+function sincronizarErrores(falta){
+  state.errors = (state.errors||[]).filter(k => falta.includes(k));
+}
+
 /* Campo de monto con el prefijo RD$ siempre visible */
 function moneyField(o){
-  return '<div class="field money'+(o.inRow?'" style="margin:0':'')+'">'
+  return '<div class="field money'+err(o.bind)+(o.inRow?'" style="margin:0':'')+'">'
     + '<span class="lab">'+o.label+'</span>'
     + '<span class="prefix">RD$</span>'
     + '<input class="inp has-lab" inputmode="decimal" value="'+moneyInput(o.value)+'" '
@@ -1251,7 +1340,7 @@ function moneyField(o){
    si está vacío, el propio label hace de placeholder. */
 function selectField(o){
   const hay = o.value != null && o.value !== '';
-  return '<button class="select-like"'
+  return '<button class="select-like'+(o.err?' err':'')+'"'
     + (o.disabled ? ' disabled' : (o.action ? ' data-a="'+o.action+'"' : ''))
     + (o.data ? ' '+o.data : '')
     + (o.style ? ' style="'+o.style+'"' : '') + '>'
@@ -1283,7 +1372,7 @@ function accountBlock(){
   const f = state.form;
   const a = f.accountId ? acct(f.accountId) : null;
   return '<div class="section-title">Cuenta para recibir pagos:</div>'
-    + '<button class="acct" data-a="pickAccount" data-for="form">'
+    + '<button class="acct'+err('account')+'" data-a="pickAccount" data-for="form">'
       + (a? '<span><span class="n">'+a.name+'</span><span class="d">'+a.num+'<br>Disponible: '+money(a.avail)+'</span></span>'
           : '<span class="n" style="color:var(--navy)">Seleccionar cuenta</span>')
       + '<span class="chev">'+I.chev+'</span></button>';
@@ -1293,57 +1382,57 @@ function accountBlock(){
 function scrNewExpenseGroup(){
   const f = state.form;
   /* Sin cuenta: en este tipo se elige al crear cada gasto */
-  const ok = f.name && f.name.trim() && f.emoji;
+  const falta = faltantes(); sincronizarErrores(falta);
   let b = '<div class="type-chip"><span class="chip">Grupo para gastos</span></div>'
     + '<div class="row">'
-      + '<div class="field" style="margin:0"><span class="lab">Nombre del grupo</span>'
+      + '<div class="field'+err('name')+'" style="margin:0"><span class="lab">Nombre del grupo</span>'
         + '<input class="inp has-lab" id="gname" placeholder="Ej. Viaje a Jarabacoa" value="'+esc(f.name||'')+'" data-bind="name"></div>'
-      + '<button class="emoji-btn" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
+      + '<button class="emoji-btn'+err('emoji')+'" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
     + '</div>'
-    + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px',
+    + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px', err:!!err('category'),
         value: f.category ? catOf(f.category).e+' '+catOf(f.category).n : '', icon:I.down})
     + participantsBlock();
   return shell({title:'Nuevo grupo de pago', body:b, flow:true,
-    footer:'<button class="btn btn-primary" data-a="createGroup" '+(ok?'':'disabled')+'>Crear grupo de pago</button>'});
+    footer:'<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="createGroup">Crear grupo de pago</button>'});
 }
 
 /* ---------- Crear: colecta ---------- */
 function scrNewCollecta(){
   const f = state.form;
-  const ok = f.name && f.name.trim() && f.emoji && Number(f.perPerson)>0 && f.deadline && f.accountId;
+  const falta = faltantes(); sincronizarErrores(falta);
   let b = '<div class="type-chip"><span class="chip">Colecta</span></div>'
     + '<div class="row">'
-      + '<div class="field" style="margin:0"><span class="lab">Nombre del grupo</span>'
+      + '<div class="field'+err('name')+'" style="margin:0"><span class="lab">Nombre del grupo</span>'
         + '<input class="inp has-lab" placeholder="Ej. Regalo para Ana" value="'+esc(f.name||'')+'" data-bind="name"></div>'
-      + '<button class="emoji-btn" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
+      + '<button class="emoji-btn'+err('emoji')+'" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
     + '</div>'
     + '<div class="section-title">Información del pago</div>'
     + '<div class="row eq">'
       + moneyField({label:'Monto por persona', bind:'perPerson', value:f.perPerson, inRow:true})
       + selectField({action:'pickDate', data:'data-f="deadline"', label:'Fecha límite',
-          value:f.deadline||'', icon:I.cal})
+          value:f.deadline||'', icon:I.cal, err:!!err('deadline')})
     + '</div>'
     + accountBlock()
     + participantsBlock();
   return shell({title:'Nuevo grupo de pago', body:b, flow:true,
-    footer:'<button class="btn btn-primary" data-a="createGroup" '+(ok?'':'disabled')+'>Crear grupo de pago</button>'});
+    footer:'<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="createGroup">Crear grupo de pago</button>'});
 }
 
 /* ---------- Crear: pago recurrente ---------- */
 function scrNewRecurrent(){
   const f = state.form;
-  const ok = f.name && f.name.trim() && f.emoji && Number(f.amount)>0 && f.payDay && f.accountId;
+  const falta = faltantes(); sincronizarErrores(falta);
   let b = '<div class="type-chip"><span class="chip">Pago recurrente</span></div>'
     /* 32 y no 16: el label flotante del campo se come parte de la separación */
     + '<div class="notice" style="margin-bottom:32px">'+I.warn
       + '<span>Los pagos se dividirán en partes iguales por defecto. '
       + 'Después de crear el grupo, podrás ajustar los montos.</span></div>'
     + '<div class="row">'
-      + '<div class="field" style="margin:0"><span class="lab">Nombre del grupo</span>'
+      + '<div class="field'+err('name')+'" style="margin:0"><span class="lab">Nombre del grupo</span>'
         + '<input class="inp has-lab" placeholder="Ej. Internet apartamento" value="'+esc(f.name||'')+'" data-bind="name"></div>'
-      + '<button class="emoji-btn" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
+      + '<button class="emoji-btn'+err('emoji')+'" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
     + '</div>'
-    + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px',
+    + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px', err:!!err('category'),
         value: f.category ? catOf(f.category).e+' '+catOf(f.category).n : '', icon:I.down})
     + '<div class="section-title">Información del pago</div>'
     /* El monto va completo arriba; frecuencia y día de pago comparten la fila */
@@ -1351,12 +1440,12 @@ function scrNewRecurrent(){
     + '<div class="row eq">'
       + selectField({label:'Frecuencia', value:'Mensual', disabled:true})
       + selectField({action:'pickDayOfMonth', label:'Día de pago',
-          value: f.payDay ? f.payDay+' cada mes' : '', icon:I.cal})
+          value: f.payDay ? f.payDay+' cada mes' : '', icon:I.cal, err:!!err('payDay')})
     + '</div>'
     + accountBlock()
     + participantsBlock();
   return shell({title:'Nuevo grupo de pago', body:b, flow:true,
-    footer:'<button class="btn btn-primary" data-a="createGroup" '+(ok?'':'disabled')+'>Crear grupo de pago</button>'});
+    footer:'<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="createGroup">Crear grupo de pago</button>'});
 }
 
 /* ---------- Éxito de creación + compartir ---------- */
@@ -1575,21 +1664,21 @@ function scrAddExpense(){
   const activos = gr.members.filter(m=>chosen[m]);
   /* La cuenta solo aplica si yo adelanté el dinero: es donde me reembolsan */
   const yoPague = (f.paidBy||ME) === ME;
-  const ok = f.title && f.title.trim() && amt>0 && f.date && activos.length>0 && (!yoPague || f.accountId);
+  const falta = faltantes(); sincronizarErrores(falta);
 
   let b = '<div class="row">'
-      + '<div class="field" style="margin:0"><input class="inp" placeholder="Título del gasto" value="'+esc(f.title||'')+'" data-bind="title"></div>'
-      + '<button class="emoji-btn" data-a="pickCategory">'+(f.category?catOf(f.category).e:I.smile)+'</button></div>'
+      + '<div class="field'+err('title')+'" style="margin:0"><input class="inp" placeholder="Título del gasto" value="'+esc(f.title||'')+'" data-bind="title"></div>'
+      + '<button class="emoji-btn'+err('category')+'" data-a="pickCategory">'+(f.category?catOf(f.category).e:I.smile)+'</button></div>'
     + moneyField({label:'Monto del gasto', bind:'amount', value:f.amount})
     + '<div class="row eq">'
       + selectField({action:'pickPayer', label:'Pagado por', value:esc(nameOf(f.paidBy||ME)), icon:I.down})
-      + selectField({action:'pickDate', data:'data-f="date"', label:'Cuándo', value:f.date||'', icon:I.cal})
+      + selectField({action:'pickDate', data:'data-f="date"', label:'Cuándo', value:f.date||'', icon:I.cal, err:!!err('date')})
     + '</div>'
     + (yoPague ? accountBlock2(gr) : '')
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin:24px 0 8px">'
       + '<span class="section-title" style="margin:0">División</span>'
       + '<button class="btn btn-primary btn-xs" data-a="pickSplit">'+(f.splitMode==='montos'?'Montos personalizados':'Partes iguales')+' '+I.down+'</button></div>'
-    + '<div class="splitbox">';
+    + '<div class="splitbox'+err('who')+'">';
   const reparto = splitAmounts(gr);
   gr.members.forEach(m=>{
     const on = !!chosen[m];
@@ -1617,12 +1706,12 @@ function scrAddExpense(){
   }
   return shell({title:'Agregar gasto', leftHtml:'<span></span>',
     right:'<button data-a="back" aria-label="Cerrar">'+I.close+'</button>', body:b, flow:true,
-    footer:'<button class="btn btn-primary" data-a="saveExpense" data-gid="'+gr.id+'" '+(ok?'':'disabled')+'>Crear gasto</button>'});
+    footer:'<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="saveExpense" data-gid="'+gr.id+'">Crear gasto</button>'});
 }
 function accountBlock2(gr){
   const a = state.form.accountId ? acct(state.form.accountId) : null;
   return '<div class="section-title">Cuenta para recibir pagos:</div>'
-    + '<button class="acct" data-a="pickAccount" data-for="form">'
+    + '<button class="acct'+err('account')+'" data-a="pickAccount" data-for="form">'
       + (a? '<span><span class="n">'+a.name+'</span><span class="d">'+a.num+'<br>Disponible: '+money(a.avail)+'</span></span>'
           : '<span class="n" style="color:var(--navy)">Seleccionar cuenta</span>')
       + '<span class="chev">'+I.chev+'</span></button>';
@@ -2261,7 +2350,8 @@ function render(anim, keepScroll){
   const fn = ROUTES[state.route] || scrHome;
   let html = fn();
   if(anim) html = html.replace('class="screen"','class="screen '+anim+'"');
-  vp().innerHTML = html + renderModal() + (state.toast?'<div class="toast">'+esc(state.toast)+'</div>':'');
+  vp().innerHTML = html + renderModal() + (state.toast?'<div class="toast'+(state.toastTipo==='warn'?' warn':'')+'">'
+        +(state.toastTipo==='warn'?I.warn:'')+'<span>'+esc(state.toast)+'</span></div>':'');
   if(keepScroll){
     const sb=document.getElementById('scrollBody'); if(sb) sb.scrollTop=prevScroll;
     if(prevModalScroll){ const m=document.querySelector('.sheet,.dialog'); if(m) m.scrollTop=prevModalScroll; }
@@ -2391,6 +2481,7 @@ document.addEventListener('click', e=>{
     /* Crear grupo */
     case 'newGroup': state.form={}; go('newGroupType'); break;
     case 'pickType':
+      state.errors=[];
       state.form={type:d.t, people:[{id:ME, name:person(ME).name}], emoji:null, accountId:null,
         frequency:'Mensual', deadline:todayStr(), payDay:null,
         /* La colecta no muestra el campo; las demás arrancan sin categoría */
@@ -2445,7 +2536,8 @@ document.addEventListener('click', e=>{
     case 'setAccount':
       if(d.for==='pay') state.pay.accountId=d.id; else state.form.accountId=d.id;
       back(); break;
-    case 'createGroup': createGroup(); break;
+    /* Antes de crear, se avisa de lo que falta en vez de no hacer nada */
+    case 'createGroup': if(!avisarFaltantes()) createGroup(); break;
 
     /* Grupo */
     case 'openGroup': state.tab='gastos'; go('group',{gid:d.id}); break;
@@ -2458,6 +2550,7 @@ document.addEventListener('click', e=>{
     /* Gastos */
     case 'addExpense': {
       const gr=g(gid); const who={}; gr.members.forEach(m=>who[m]=true);
+      state.errors=[];
       state.form={who:who, paidBy:ME, splitMode:'iguales', date:todayStr(), accountId:null, custom:{}};
       go('addExpense',{gid:gid}); break; }
     case 'toggleWho':
@@ -2474,7 +2567,7 @@ document.addEventListener('click', e=>{
     case 'resetSplit':
       state.form.locked={}; state.form.custom={};
       render(null,true); break;
-    case 'saveExpense': saveExpense(gid); break;
+    case 'saveExpense': if(!avisarFaltantes()) saveExpense(gid); break;
     case 'openExpense': go('expense',{gid:d.gid, eid:d.eid}); break;
     case 'openPeriod': go('period',{gid:d.gid, pid:d.pid}); break;
     case 'adjustSplit': state.__adj=null; openModal({type:'adjust', gid:gid}); break;
@@ -2583,6 +2676,12 @@ document.addEventListener('click', e=>{
     case 'goArchived': go('archived'); break;
     case 'goSimulate': go('simulate'); break;
     case 'simInvite': state.form={}; go('join',{gid:d.gid||'s1'}); break;
+    case 'simAccepted': {
+      const gr=state.groups.find(x=>x.pendingMe); if(!gr) break;
+      acceptMe(gr);
+      state.stack=[{route:'home',params:{},tab:'gastos'}];
+      go('joined',{gid:gr.id},{replace:true, up:true});
+      break; }
     case 'simRequest': {
       const gr=g(d.gid); if(!gr) break;
       const quien = Object.values(PEOPLE).find(p=>p.id!==ME && !gr.members.includes(p.id))
@@ -2724,9 +2823,24 @@ function doJoin(gid){
   } else {
     const quien = pick ? person(pick).name : nm;
     gr.requests.push({id:uid('r'), userName:quien, full:quien.toUpperCase()});
+    /* Queda a la espera: aparece en el dashboard bajo solicitudes pendientes */
+    gr.pendingMe = true;
+    gr.pendingPick = pick || null;
     state.stack=[{route:'home',params:{},tab:'gastos'}];
     go('joinSent',{gid:gid},{replace:true, up:true});
   }
+}
+
+/* Me aceptan: el grupo pasa a la lista de activos */
+function acceptMe(gr){
+  gr.requests = gr.requests.filter(r => r.userName !== (state.form.joinName||'').trim());
+  if(gr.pendingPick) claimSlot(gr, gr.pendingPick);
+  else if(!gr.members.includes(ME)) gr.members.push(ME);
+  if(gr.type==='colecta' && gr.contributions[ME]===undefined) gr.contributions[ME]=false;
+  if(gr.type==='recurrente') (gr.periods||[]).forEach(p=>{
+    if(p.split[ME]==null){ p.split[ME]=round2(gr.amount/gr.members.length); p.paid[ME]=false; }
+  });
+  delete gr.pendingMe; delete gr.pendingPick;
 }
 
 render();
