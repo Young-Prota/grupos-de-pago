@@ -1385,9 +1385,9 @@ function scrNewExpenseGroup(){
   const falta = faltantes(); sincronizarErrores(falta);
   let b = '<div class="type-chip"><span class="chip">Grupo para gastos</span></div>'
     + '<div class="row">'
+      + '<button class="emoji-btn'+err('emoji')+'" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
       + '<div class="field'+err('name')+'" style="margin:0"><span class="lab">Nombre del grupo</span>'
         + '<input class="inp has-lab" id="gname" placeholder="Ej. Viaje a Jarabacoa" value="'+esc(f.name||'')+'" data-bind="name"></div>'
-      + '<button class="emoji-btn'+err('emoji')+'" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
     + '</div>'
     + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px', err:!!err('category'),
         value: f.category ? catOf(f.category).e+' '+catOf(f.category).n : '', icon:I.down})
@@ -1402,9 +1402,9 @@ function scrNewCollecta(){
   const falta = faltantes(); sincronizarErrores(falta);
   let b = '<div class="type-chip"><span class="chip">Colecta</span></div>'
     + '<div class="row">'
+      + '<button class="emoji-btn'+err('emoji')+'" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
       + '<div class="field'+err('name')+'" style="margin:0"><span class="lab">Nombre del grupo</span>'
         + '<input class="inp has-lab" placeholder="Ej. Regalo para Ana" value="'+esc(f.name||'')+'" data-bind="name"></div>'
-      + '<button class="emoji-btn'+err('emoji')+'" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
     + '</div>'
     + '<div class="section-title">Información del pago</div>'
     + '<div class="row eq">'
@@ -1428,9 +1428,9 @@ function scrNewRecurrent(){
       + '<span>Los pagos se dividirán en partes iguales por defecto. '
       + 'Después de crear el grupo, podrás ajustar los montos.</span></div>'
     + '<div class="row">'
+      + '<button class="emoji-btn'+err('emoji')+'" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
       + '<div class="field'+err('name')+'" style="margin:0"><span class="lab">Nombre del grupo</span>'
         + '<input class="inp has-lab" placeholder="Ej. Internet apartamento" value="'+esc(f.name||'')+'" data-bind="name"></div>'
-      + '<button class="emoji-btn'+err('emoji')+'" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
     + '</div>'
     + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px', err:!!err('category'),
         value: f.category ? catOf(f.category).e+' '+catOf(f.category).n : '', icon:I.down})
@@ -1667,8 +1667,8 @@ function scrAddExpense(){
   const falta = faltantes(); sincronizarErrores(falta);
 
   let b = '<div class="row">'
-      + '<div class="field'+err('title')+'" style="margin:0"><input class="inp" placeholder="Título del gasto" value="'+esc(f.title||'')+'" data-bind="title"></div>'
-      + '<button class="emoji-btn'+err('category')+'" data-a="pickCategory">'+(f.category?catOf(f.category).e:I.smile)+'</button></div>'
+      + '<button class="emoji-btn'+err('category')+'" data-a="pickCategory">'+(f.category?catOf(f.category).e:I.smile)+'</button>'
+      + '<div class="field'+err('title')+'" style="margin:0"><input class="inp" placeholder="Título del gasto" value="'+esc(f.title||'')+'" data-bind="title"></div></div>'
     + moneyField({label:'Monto del gasto', bind:'amount', value:f.amount})
     + '<div class="row eq">'
       + selectField({action:'pickPayer', label:'Pagado por', value:esc(nameOf(f.paidBy||ME)), icon:I.down})
