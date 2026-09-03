@@ -127,6 +127,8 @@ h2.t{font-size:16px;font-weight:700;color:var(--navy);margin:16px 0}
 /* Encabezado de pantalla de selección: Inter semibold 16 */
 h2.t.ui{font-family:var(--font-ui);font-size:16px;font-weight:600}
 .section-title{font-size:16px;font-weight:700;color:#37424F;margin:16px 0}
+/* Aclaración dentro de un título de sección: mismo tamaño, peso normal */
+.st-note{font-weight:400}
 p.sub{margin:0 0 16px;color:var(--ink-2);font-family:var(--font-ui);font-size:16px;font-weight:400;line-height:1.45}
 .sec-nav{font-size:16px;font-weight:700;color:var(--navy);margin:16px 0 0}
 .muted{color:var(--muted)}
@@ -303,6 +305,7 @@ textarea.inp{height:auto;min-height:96px;padding:16px}
   border-radius:32px;background:#fff;border:1.5px solid var(--line);font-size:30px;line-height:1;
   margin:0 auto 24px;padding:0;cursor:pointer;color:var(--orange)}
 .em-edit:active{border-color:var(--orange)}
+.edited-name{margin-top:16px;font-family:var(--font-ui);font-size:20px;font-weight:500;color:#37424F}
 
 .tabs{display:flex;border-bottom:1px solid var(--line);margin:16px -24px 0;padding:0 24px}
 .tabs button{flex:1;background:none;border:0;padding:16px 0 8px;font-size:16px;font-weight:700;color:var(--navy);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
@@ -1319,7 +1322,8 @@ function scrNewGroupType(){
 function faltantes(){
   const f = state.form, falta = [];
   const vacio = v => !v || !String(v).trim();
-  if(state.route==='addExpense'){
+  /* El alta y la edición de un gasto piden lo mismo */
+  if(state.route==='addExpense' || state.route==='editExpense'){
     const gr = g(state.params.gid);
     if(vacio(f.title)) falta.push('title');
     if(!(Number(f.amount)>0)) falta.push('amount');
@@ -1391,9 +1395,12 @@ function selectField(o){
 
 /* ---------- Bloque de participantes reutilizable ---------- */
 /* Participantes editables. El primero siempre soy yo y también puedo cambiar mi nombre. */
-function participantsBlock(){
+/* luego:true añade la aclaración de que no es obligatorio llenarlos ahora */
+function participantsBlock(luego){
   const list = state.form.people || [];
-  let h = '<div class="section-title">Participantes</div>';
+  let h = '<div class="section-title">Participantes'
+    + (luego ? ' <span class="st-note">(Puedes agregarlos luego)</span>' : '')
+    + '</div>';
   list.forEach(p=>{
     /* La X está siempre disponible y solo borra el texto del campo */
     h += '<div class="prow">'
@@ -1429,7 +1436,7 @@ function scrNewExpenseGroup(){
     + '</div>'
     + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px', err:!!err('category'),
         value: f.category ? catLabel(f.category) : '', icon:I.down})
-    + participantsBlock();
+    + participantsBlock(true);
   return shell({title:'Nuevo grupo de pago', body:b, flow:true,
     footer:'<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="createGroup">Crear grupo de pago</button>'});
 }
@@ -1481,9 +1488,22 @@ function scrNewRecurrent(){
           value: f.payDay ? f.payDay+' cada mes' : '', icon:I.cal, err:!!err('payDay')})
     + '</div>'
     + accountBlock()
-    + participantsBlock();
+    + participantsBlock(true);
   return shell({title:'Nuevo grupo de pago', body:b, flow:true,
     footer:'<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="createGroup">Crear grupo de pago</button>'});
+}
+
+/* ---------- Gasto editado ---------- */
+function scrExpenseEdited(){
+  const gr = g(state.params.gid); if(!gr) return scrHome();
+  const e = (gr.expenses||[]).find(x=>x.id===state.params.eid);
+  const b = '<div class="success" style="padding-top:24px">'
+    + '<h2>¡Gasto editado con éxito!</h2>'
+    + '<div class="tick">'+I.checkBig+'</div>'
+    + '<div class="edited-name">'+(e?e.emoji+' ':'')+'“'+esc(e?e.title:'')+'”</div>'
+  + '</div>';
+  return shell({title:'', noBack:true, body:b, flow:true,
+    footer:'<button class="btn btn-primary" data-a="expenseEditedDone">Continuar</button>'});
 }
 
 /* ---------- Editar información del grupo ---------- */
@@ -1529,7 +1549,9 @@ function scrCreated(){
       + '<div class="lead">Invita a otras personas para que se unan a este grupo</div>'
       + '<div class="qt">Código QR del grupo</div>'
       + qrHtml(gr.id)
-      + '<button class="btn btn-soft" data-a="shareModal" data-id="'+gr.id+'">Compartir enlace '+I.share+'</button>'
+      /* Esta pantalla ya muestra el QR: abrir el modal repetiría lo mismo,
+         así que aquí el botón copia el enlace directamente. */
+      + '<button class="btn btn-soft" data-a="shareLink" data-id="'+gr.id+'">Compartir enlace '+I.share+'</button>'
       + '<div class="small muted" style="margin-top:16px;line-height:1.45">'
         + (dir? 'Las personas con este enlace podrán unirse directamente al grupo.'
               : 'Las personas con este enlace deberán solicitar acceso al grupo.') + '</div>'
@@ -1629,7 +1651,7 @@ function scrGroup(){
       });
       b += '</div>';
     }
-    const canAdd = gr.perms.addExpense==='todos' || (gr.perms.addExpense==='admins'&&isAdmin(gr)) || (gr.perms.addExpense==='dueno'&&gr.owner===ME);
+    const canAdd = puedeAgregarGastos(gr);
     /* En Balances no se agregan gastos: el botón sobra */
     const pie = state.tab!=='gastos' ? ''
       : canAdd
@@ -1733,6 +1755,8 @@ function scrPendingGroup(gr){
 function scrAddExpense(){
   const gr = g(state.params.gid); if(!gr) return scrHome();
   const f = state.form;
+  /* Misma pantalla en dos modos: crear un gasto o editar uno existente */
+  const editando = state.route==='editExpense';
   const amt = Number(f.amount)||0;
   const chosen = f.who || {};
   const activos = gr.members.filter(m=>chosen[m]);
@@ -1740,7 +1764,11 @@ function scrAddExpense(){
   const yoPague = (f.paidBy||ME) === ME;
   const falta = faltantes(); sincronizarErrores(falta);
 
-  let b = '<div class="row">'
+  /* El emoji solo se toca al editar: al crear se asigna solo */
+  let b = editando
+    ? '<button class="em-edit" data-a="pickEmoji" aria-label="Cambiar emoji del gasto">'+(f.emoji||I.smile)+'</button>'
+    : '';
+  b += '<div class="row">'
       + '<div class="field'+err('title')+'" style="margin:0"><input class="inp" placeholder="Nombre del gasto" value="'+esc(f.title||'')+'" data-bind="title"></div></div>'
     + moneyField({label:'Monto del gasto', bind:'amount', value:f.amount})
     + '<div class="row eq">'
@@ -1777,9 +1805,51 @@ function scrAddExpense(){
       + (hayFijos ? '<button class="btn btn-soft btn-xs" data-a="resetSplit">Restablecer</button>' : '')
     + '</div>';
   }
-  return shell({title:'Agregar gasto', leftHtml:'<span></span>',
+  let pie;
+  if(editando){
+    /* Sin cambios no hay nada que guardar ni nada que explicar */
+    const cambio = huboCambiosGasto(gr);
+    pie = !cambio
+      ? '<button class="btn btn-primary" disabled>Guardar cambios</button>'
+      : '<button class="btn btn-primary'+((falta.length||descuadre(gr))?' btn-off':'')+'" '
+        + 'data-a="saveExpenseEdit" data-gid="'+gr.id+'">Guardar cambios</button>';
+  } else {
+    pie = '<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="saveExpense" data-gid="'+gr.id+'">Crear gasto</button>';
+  }
+  return shell({title: editando?'Editar gasto':'Agregar gasto', leftHtml:'<span></span>',
     right:'<button data-a="back" aria-label="Cerrar">'+I.close+'</button>', body:b, flow:true,
-    footer:'<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="saveExpense" data-gid="'+gr.id+'">Crear gasto</button>'});
+    footer:pie});
+}
+/* Retrato del gasto tal como está en el formulario, para comparar con el
+   original y saber si de verdad cambió algo. */
+function retratoGasto(gr){
+  const f = state.form;
+  const reparto = splitAmounts(gr);
+  const partes = {};
+  gr.members.forEach(m=>{ if(f.who && f.who[m]) partes[m] = round2(reparto[m]||0); });
+  return JSON.stringify({
+    emoji:f.emoji, title:(f.title||'').trim(), amount:round2(f.amount),
+    paidBy:f.paidBy||ME, date:f.date, accountId:f.accountId||null,
+    splitMode:f.splitMode||'iguales',
+    quienes:Object.keys(partes).sort(), partes:partes
+  });
+}
+function huboCambiosGasto(gr){ return retratoGasto(gr) !== state.form.orig; }
+/* En montos personalizados el reparto tiene que sumar el total del gasto */
+function descuadre(gr){
+  const f = state.form;
+  if((f.splitMode||'iguales') !== 'montos') return 0;
+  const reparto = splitAmounts(gr);
+  const suma = round2(gr.members.filter(m=>f.who&&f.who[m]).reduce((s,m)=>s+(reparto[m]||0),0));
+  const dif = round2((Number(f.amount)||0) - suma);
+  return Math.abs(dif) < 0.01 ? 0 : dif;
+}
+
+/* Quién puede crear (y por tanto editar) gastos en el grupo */
+function puedeAgregarGastos(gr){
+  return gr.perms.addExpense==='todos'
+      || (gr.perms.addExpense==='admins' && isAdmin(gr))
+      || (gr.perms.addExpense==='dueno' && gr.owner===ME);
 }
 function accountBlock2(gr){
   const a = state.form.accountId ? acct(state.form.accountId) : null;
@@ -1858,7 +1928,12 @@ function scrExpense(){
       ? '<button class="btn" disabled>'+(e.paidBy===ME?'Tú pagaste este gasto':'Ya pagaste tu parte')+'</button>'
       : '<button class="btn btn-primary" data-a="payItem" data-gid="'+gr.id+'" data-kind="gasto" data-id="'+e.id+'">Pagar mi parte · '+money(mine)+'</button>';
   }
-  return shell({title:'Gasto', body:b, borderFooter:participo, footer:pie});
+  /* Editar el gasto requiere el mismo permiso que crearlo */
+  const editar = puedeAgregarGastos(gr)
+    ? '<button data-a="editExpense" data-gid="'+gr.id+'" data-id="'+e.id+'" '
+      + 'class="edit-btn" aria-label="Editar gasto">'+I.edit+'</button>'
+    : '';
+  return shell({title:'Gasto', right:editar, body:b, borderFooter:participo, footer:pie});
 }
 
 /* ---------- Período recurrente ---------- */
@@ -2411,7 +2486,8 @@ function calendarHtml(field){
 const ROUTES = {
   home:scrHome, myAccounts:scrMyAccounts, newGroupType:scrNewGroupType,
   newExpenseGroup:scrNewExpenseGroup, newCollecta:scrNewCollecta, newRecurrent:scrNewRecurrent,
-  created:scrCreated, group:scrGroup, editGroup:scrEditGroup, addExpense:scrAddExpense, expense:scrExpense, period:scrPeriod,
+  created:scrCreated, group:scrGroup, editGroup:scrEditGroup,
+  editExpense:scrAddExpense, expenseEdited:scrExpenseEdited, addExpense:scrAddExpense, expense:scrExpense, period:scrPeriod,
   pay:scrPay, payConfirm:scrPayConfirm, receipt:scrReceipt, externalOk:scrExternalOk,
   config:scrConfig, cfgOptions:scrCfgOptions, cfgAdmins:scrCfgAdmins, addAdmin:scrAddAdmin, cfgAccount:scrCfgAccount,
   selectAccount:scrSelectAccount, join:scrJoin, joinSent:scrJoinSent, joined:scrJoined,
@@ -2669,6 +2745,28 @@ document.addEventListener('click', e=>{
       state.form.locked={}; state.form.custom={};
       render(null,true); break;
     case 'saveExpense': if(!avisarFaltantes()) saveExpense(gid); break;
+    case 'editExpense': {
+      const gr=g(gid); const e=(gr.expenses||[]).find(x=>x.id===d.id); if(!e) break;
+      state.errors=[];
+      /* Se cargan los datos actuales. Los integrantes que no estaban en el gasto
+         aparecen, pero desmarcados: sumarlos tiene que ser una decisión explícita. */
+      const who={}; Object.keys(e.split).forEach(m=>{ if(gr.members.includes(m)) who[m]=true; });
+      const locked={}; if(e.splitMode==='montos') Object.keys(e.split).forEach(m=>locked[m]=true);
+      state.form={emoji:e.emoji, title:e.title, amount:String(e.amount), paidBy:e.paidBy,
+        date:e.date, accountId:e.accountId||null, splitMode:e.splitMode||'iguales',
+        who:who, locked:locked, custom:Object.assign({}, e.split)};
+      /* El punto de partida se fija antes de pintar: si no, el primer render
+         vería un formulario "sin original" y daría el botón por activo. */
+      state.form.orig = retratoGasto(gr);
+      go('editExpense',{gid:gr.id, eid:e.id}); break; }
+    case 'saveExpenseEdit': {
+      const gr=g(gid); if(!gr) break;
+      if(avisarFaltantes()) break;
+      const dif=descuadre(gr);
+      if(dif){ toast(dif>0 ? 'Faltan '+money(dif)+' por asignar' : 'Sobran '+money(-dif)+' en el reparto','warn'); break; }
+      saveExpenseEdit(gr); break; }
+    case 'expenseEditedDone':
+      go('expense',{gid:state.params.gid, eid:state.params.eid},{replace:true}); break;
     case 'openExpense': go('expense',{gid:d.gid, eid:d.eid}); break;
     case 'openPeriod': go('period',{gid:d.gid, pid:d.pid}); break;
     case 'adjustSplit': state.__adj=null; openModal({type:'adjust', gid:gid}); break;
@@ -2828,6 +2926,23 @@ function nextDateFor(dia){
   return Math.min(dia, ultimo)+'/'+MONTHS[m]+'/'+y;
 }
 
+/* Aplica la edición sobre el gasto y deja los balances al día. Los pagos ya
+   saldados se respetan; quien entra al gasto empieza pendiente. */
+function saveExpenseEdit(gr){
+  const f = state.form;
+  const e = (gr.expenses||[]).find(x=>x.id===state.params.eid); if(!e) return;
+  const act = gr.members.filter(m=>f.who && f.who[m]);
+  const reparto = splitAmounts(gr);
+  const split = {}; act.forEach(m=> split[m] = round2(reparto[m]||0));
+  const quienPago = f.paidBy || ME;
+  const paid = {};
+  act.forEach(m=> paid[m] = m===quienPago ? true : !!e.paid[m]);
+  Object.assign(e, {emoji:f.emoji, title:(f.title||'').trim(), amount:round2(f.amount),
+    paidBy:quienPago, date:f.date, accountId:f.accountId||null,
+    splitMode:f.splitMode||'iguales', split:split, paid:paid});
+  go('expenseEdited',{gid:gr.id, eid:e.id},{replace:true});
+}
+
 function createGroup(){
   const f = state.form;
   const id = uid('g');
@@ -2871,7 +2986,8 @@ function saveExpense(gid){
   /* El gasto recibe un emoji al azar del repertorio general; el usuario podrá
      cambiarlo más adelante desde la edición del gasto. */
   gr.expenses.push({id:uid('e'), title:f.title.trim(), emoji:emojiDeGasto(),
-    amount:amt, paidBy:f.paidBy||ME, date:f.date, split:split, paid:paid});
+    amount:amt, paidBy:f.paidBy||ME, date:f.date, accountId:f.accountId||null,
+    splitMode:f.splitMode||'iguales', split:split, paid:paid});
   state.tab='gastos';
   back();
   toast('Gasto agregado con éxito: “'+f.title.trim()+'”');
