@@ -292,6 +292,17 @@ textarea.inp{height:auto;min-height:96px;padding:16px}
 /* Nombre del grupo en su pantalla: Inter medium 24 */
 .hero h2{margin:0 0 8px;font-family:var(--font-ui);font-size:24px;font-weight:500;
   color:#37424F;letter-spacing:-.01em}
+/* El lápiz acompaña al nombre sin descentrarlo: el título sigue mandando */
+.hero-name{display:flex;align-items:center;justify-content:center;gap:8px}
+.hero-name h2{margin-bottom:8px}
+.edit-btn{background:none;border:0;padding:4px;margin:0 0 8px;line-height:0;
+  color:var(--orange);cursor:pointer;border-radius:8px}
+.edit-btn:active{background:var(--orange-l)}
+/* Emoji del grupo al editarlo: mismo círculo de la pantalla del grupo, pulsable */
+.em-edit{display:flex;align-items:center;justify-content:center;width:64px;height:64px;
+  border-radius:32px;background:#fff;border:1.5px solid var(--line);font-size:30px;line-height:1;
+  margin:0 auto 24px;padding:0;cursor:pointer;color:var(--orange)}
+.em-edit:active{border-color:var(--orange)}
 
 .tabs{display:flex;border-bottom:1px solid var(--line);margin:16px -24px 0;padding:0 24px}
 .tabs button{flex:1;background:none;border:0;padding:16px 0 8px;font-size:16px;font-weight:700;color:var(--navy);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
@@ -778,6 +789,7 @@ const I = {
   chev:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M8 21L15.875 12L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   down:'<svg width="15" height="9" viewBox="0 0 15 9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5 7.5 7.5l6-6"/></svg>',
   up:'<svg width="15" height="9" viewBox="0 0 15 9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 7.5 7.5 1.5l6 6"/></svg>',
+  edit:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M16.5 3.75a2.06 2.06 0 0 1 1.46.6l1.69 1.69a2.06 2.06 0 0 1 0 2.92L8.9 19.71c-.19.19-.43.32-.69.37l-3.83.77a.75.75 0 0 1-.88-.88l.77-3.83c.05-.26.18-.5.37-.69L15.04 4.35c.39-.39.91-.6 1.46-.6Zm-9.6 12.4-.44 2.2 2.2-.44-1.76-1.76ZM16.5 5.25a.56.56 0 0 0-.4.16L7.7 13.82l2.48 2.48 8.41-8.41a.56.56 0 0 0 0-.8l-1.69-1.68a.56.56 0 0 0-.4-.16Z" fill="currentColor"/></svg>',
   gear:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M16.501 3.75C16.7681 3.75 17.0152 3.89223 17.1495 4.12305L21.6485 11.8545C21.7825 12.0848 21.7846 12.3696 21.6534 12.6016L17.1182 20.6191C16.9852 20.8543 16.7361 20.9999 16.4659 21H7.46784C7.19586 21 6.945 20.8528 6.81256 20.6152L2.34479 12.5967C2.21609 12.3654 2.21852 12.0832 2.35163 11.8545L6.85065 4.12305C6.98495 3.89223 7.23204 3.75 7.49909 3.75H16.501ZM3.86237 12.2402L7.90827 19.5H16.0284L20.1348 12.2363L16.0694 5.25H7.93073L3.86237 12.2402ZM12.002 7.49707C14.6005 7.49726 16.6924 9.62526 16.6924 12.2324C16.6922 14.8393 14.6003 16.9676 12.002 16.9678C9.40373 16.9676 7.3109 14.8393 7.31061 12.2324C7.31061 9.62528 9.40355 7.49729 12.002 7.49707ZM12.002 8.99707C10.2477 8.99729 8.81061 10.4379 8.81061 12.2324C8.8109 14.0267 10.2478 15.4676 12.002 15.4678C13.7562 15.4676 15.1922 14.0267 15.1924 12.2324C15.1924 10.4379 13.7564 8.99726 12.002 8.99707Z" fill="currentColor"/></svg>',
   share:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5M8 7l4-4 4 4"/><path d="M5 13v6.5h14V13"/></svg>',
   plus:'<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M10 3v14M3 10h14"/></svg>',
@@ -837,11 +849,36 @@ const ACCOUNTS = [
   {id:'a1',name:'Cuenta Nómina',num:'8722992893',avail:13000},
   {id:'a2',name:'Mis Ahorros',num:'8800081234',avail:60000}
 ];
-const CATEGORIES = [
-  {id:'comida',e:'🍔',n:'Comida'},{id:'compras',e:'🛒',n:'Compras'},{id:'hogar',e:'🏠',n:'Hogar'},
-  {id:'transporte',e:'🚕',n:'Transporte'},{id:'entret',e:'🎤',n:'Entretenimiento'},{id:'viajes',e:'✈️',n:'Viajes'},
-  {id:'regalos',e:'🎁',n:'Regalos'},{id:'salud',e:'🩺',n:'Salud'},{id:'servicios',e:'📶',n:'Servicios'},{id:'otros',e:'✋',n:'Otros'}
-];
+/* Cada tipo de grupo ofrece su propio juego de categorías, con su emoji.
+   Ese emoji es el valor inicial del emoji visual del grupo; a partir de ahí las
+   dos propiedades viven aparte y cambiar una no toca la otra. */
+const CATEGORIES = {
+  gastos:[
+    {id:'salidas',e:'🎳',n:'Salidas y juntes'},{id:'viajes',e:'✈️',n:'Viajes'},
+    {id:'hogar',e:'🏠',n:'Hogar'},{id:'compras',e:'🛒',n:'Compras'},
+    {id:'entret',e:'🎤',n:'Entretenimiento'},{id:'educacion',e:'📚',n:'Educación'},
+    {id:'otro_gastos',e:'📌',n:'Otro'}
+  ],
+  colecta:[
+    {id:'regalos',e:'🎁',n:'Regalos'},{id:'celebraciones',e:'🎉',n:'Celebraciones'},
+    {id:'ayuda',e:'🩺',n:'Ayuda y apoyo'},{id:'proyectos',e:'🔨',n:'Proyectos'},
+    {id:'otro_colecta',e:'📌',n:'Otros'}
+  ],
+  recurrente:[
+    {id:'entret_rec',e:'🎤',n:'Entretenimiento'},{id:'hogar_rec',e:'🏠',n:'Hogar'},
+    {id:'educacion_rec',e:'📚',n:'Educación'},{id:'membresias',e:'💳',n:'Membresías'},
+    {id:'otro_rec',e:'📌',n:'Otros'}
+  ]
+};
+const TODAS_CATEGORIAS = [].concat(CATEGORIES.gastos, CATEGORIES.colecta, CATEGORIES.recurrente);
+/* Respaldo por tipo, solo por si una categoría llegara sin emoji.
+   El valor normal sale de la categoría elegida. */
+const GROUP_EMOJI = {gastos:'🧾', colecta:'🎁', recurrente:'📅'};
+/* Repertorio general para los gastos: nada tan específico que contradiga el
+   gasto real, distinto entre sí, y sin repetir ningún emoji de categoría para
+   que un gasto no se confunda con la categoría de su grupo. */
+const EXPENSE_EMOJIS = ['🧾','🛍️','📦','🏷️','🪙','💵','🔖','🧮','🗂️','🎟️'];
+const emojiDeGasto = () => EXPENSE_EMOJIS[Math.floor(Math.random()*EXPENSE_EMOJIS.length)];
 const METODOS = {efectivo:'Pago en efectivo', transferencia:'Transferencia desde otro banco', otro:'Otro método'};
 const EMOJIS = ['🎉','🏔️','🍔','🏠','✈️','🎁','🍕','⚽','🎬','🏖️','☕','🚗','👶','🎂','💐','📶','🎮','🧾','🛒','💡','🐶','🎵','💼','🌮'];
 
@@ -864,22 +901,22 @@ const state = {
      Estos dos existen solo para simular invitaciones y no lo incluyen. */
   groups:[
     {
-      id:'s1', type:'gastos', emoji:'🏔️', name:'Viaje a Jarabacoa', category:'viajes',
+      id:'s1', type:'gastos', emoji:'✈️', name:'Viaje a Jarabacoa', category:'viajes',
       owner:'u2', admins:['u2'], members:['u2','u3','u4'], accountId:null, archived:false,
       perms:{addExpense:'todos', join:'aprobacion', invite:'todos'}, requests:[],
       expenses:[
-        {id:'se1', title:'Cabaña 2 noches', emoji:'🏠', category:'hogar', amount:3500, paidBy:'u2', date:'8/Jul/2026',
+        {id:'se1', title:'Cabaña 2 noches', emoji:'📦', amount:3500, paidBy:'u2', date:'8/Jul/2026',
          split:{u2:1166.67,u3:1166.67,u4:1166.66}, paid:{u2:true,u3:false,u4:false}}
       ]
     },
     {
-      id:'s2', type:'gastos', emoji:'🎉', name:'Junte del finde', category:'comida',
+      id:'s2', type:'gastos', emoji:'🎳', name:'Junte del finde', category:'salidas',
       owner:'u2', admins:['u2'], members:['u2','u6','u7'], accountId:null, archived:false,
       perms:{addExpense:'todos', join:'enlace', invite:'todos'}, requests:[],
       /* El administrador ya dejó los nombres puestos; nadie los ha reclamado */
       unclaimed:['u6','u7'],
       expenses:[
-        {id:'se2', title:'Pizza', emoji:'🍔', category:'comida', amount:1200, paidBy:'u2', date:'10/Jul/2026',
+        {id:'se2', title:'Pizza', emoji:'🛍️', amount:1200, paidBy:'u2', date:'10/Jul/2026',
          split:{u2:400,u6:400,u7:400}, paid:{u2:true,u6:false,u7:false}}
       ]
     }
@@ -908,7 +945,11 @@ const fullOf = id => person(id).full;
 const acct = id => ACCOUNTS.find(a=>a.id===id) || ACCOUNTS[0];
 const acctOf = gr => gr.accountId ? acct(gr.accountId) : null;
 const typeLabel = t => t==='gastos' ? 'Grupo para gastos' : t==='colecta' ? 'Colecta' : 'Pago recurrente';
-const catOf = id => CATEGORIES.find(c=>c.id===id) || CATEGORIES[9];
+const catOf = id => TODAS_CATEGORIAS.find(c=>c.id===id) || {id:'', e:'', n:''};
+/* Como se muestra la categoría elegida dentro del campo */
+const catLabel = id => { const c = catOf(id); return c.e ? c.e+' '+c.n : c.n; };
+/* Las opciones que corresponden al formulario abierto */
+const catsDe = tipo => CATEGORIES[tipo] || CATEGORIES.gastos;
 const isAdmin = gr => gr.admins.includes(ME);
 /* Un acordeón vacío no se presenta desplegado. Si el usuario ya lo abrió
    o cerró a mano, se respeta su decisión. */
@@ -1281,7 +1322,6 @@ function faltantes(){
   if(state.route==='addExpense'){
     const gr = g(state.params.gid);
     if(vacio(f.title)) falta.push('title');
-    if(!f.category) falta.push('category');
     if(!(Number(f.amount)>0)) falta.push('amount');
     if(vacio(f.date)) falta.push('date');
     if(!gr || !gr.members.some(m=>f.who && f.who[m])) falta.push('who');
@@ -1289,9 +1329,8 @@ function faltantes(){
     return falta;
   }
   if(vacio(f.name)) falta.push('name');
-  if(!f.emoji) falta.push('emoji');
-  /* La colecta es el único tipo sin campo de categoría */
-  if(f.type!=='colecta' && !f.category) falta.push('category');
+  /* El emoji ya no se pide: se asigna solo según el tipo */
+  if(!f.category) falta.push('category');
   if(f.type==='colecta'){
     if(!(Number(f.perPerson)>0)) falta.push('perPerson');
     if(vacio(f.deadline)) falta.push('deadline');
@@ -1385,12 +1424,11 @@ function scrNewExpenseGroup(){
   const falta = faltantes(); sincronizarErrores(falta);
   let b = '<div class="type-chip"><span class="chip">Grupo para gastos</span></div>'
     + '<div class="row">'
-      + '<button class="emoji-btn'+err('emoji')+'" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
       + '<div class="field'+err('name')+'" style="margin:0"><span class="lab">Nombre del grupo</span>'
         + '<input class="inp has-lab" id="gname" placeholder="Ej. Viaje a Jarabacoa" value="'+esc(f.name||'')+'" data-bind="name"></div>'
     + '</div>'
     + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px', err:!!err('category'),
-        value: f.category ? catOf(f.category).e+' '+catOf(f.category).n : '', icon:I.down})
+        value: f.category ? catLabel(f.category) : '', icon:I.down})
     + participantsBlock();
   return shell({title:'Nuevo grupo de pago', body:b, flow:true,
     footer:'<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="createGroup">Crear grupo de pago</button>'});
@@ -1402,10 +1440,11 @@ function scrNewCollecta(){
   const falta = faltantes(); sincronizarErrores(falta);
   let b = '<div class="type-chip"><span class="chip">Colecta</span></div>'
     + '<div class="row">'
-      + '<button class="emoji-btn'+err('emoji')+'" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
       + '<div class="field'+err('name')+'" style="margin:0"><span class="lab">Nombre del grupo</span>'
         + '<input class="inp has-lab" placeholder="Ej. Regalo para Ana" value="'+esc(f.name||'')+'" data-bind="name"></div>'
     + '</div>'
+    + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px', err:!!err('category'),
+        value: f.category ? catLabel(f.category) : '', icon:I.down})
     + '<div class="section-title">Información del pago</div>'
     + '<div class="row eq">'
       + moneyField({label:'Monto por persona', bind:'perPerson', value:f.perPerson, inRow:true})
@@ -1428,12 +1467,11 @@ function scrNewRecurrent(){
       + '<span>Los pagos se dividirán en partes iguales por defecto. '
       + 'Después de crear el grupo, podrás ajustar los montos.</span></div>'
     + '<div class="row">'
-      + '<button class="emoji-btn'+err('emoji')+'" data-a="pickEmoji">'+(f.emoji||I.smile)+'</button>'
       + '<div class="field'+err('name')+'" style="margin:0"><span class="lab">Nombre del grupo</span>'
         + '<input class="inp has-lab" placeholder="Ej. Internet apartamento" value="'+esc(f.name||'')+'" data-bind="name"></div>'
     + '</div>'
     + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px', err:!!err('category'),
-        value: f.category ? catOf(f.category).e+' '+catOf(f.category).n : '', icon:I.down})
+        value: f.category ? catLabel(f.category) : '', icon:I.down})
     + '<div class="section-title">Información del pago</div>'
     /* El monto va completo arriba; frecuencia y día de pago comparten la fila */
     + moneyField({label:'Monto del pago', bind:'amount', value:f.amount})
@@ -1446,6 +1484,37 @@ function scrNewRecurrent(){
     + participantsBlock();
   return shell({title:'Nuevo grupo de pago', body:b, flow:true,
     footer:'<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="createGroup">Crear grupo de pago</button>'});
+}
+
+/* ---------- Editar información del grupo ---------- */
+/* Solo identidad: tipo (fijo), emoji, nombre y categoría. Lo demás vive en
+   Configurar grupo. */
+function scrEditGroup(){
+  const gr = g(state.params.gid); if(!gr) return scrHome();
+  const f = state.form;
+  const orig = f.orig || {};
+  const nombre = (f.name||'').trim();
+  /* Solo se guarda si algo cambió de verdad */
+  const cambio = f.emoji!==orig.emoji || nombre!==orig.name || f.category!==orig.category;
+  const falta = !nombre;
+  sincronizarErrores(falta ? ['name'] : []);
+
+  /* El emoji va centrado arriba, con el mismo círculo que identifica al grupo
+     en su pantalla; se toca para cambiarlo. */
+  const b = '<div class="type-chip"><span class="chip">'+typeLabel(gr.type)+'</span></div>'
+    + '<button class="em-edit" data-gtype="'+gr.type+'" data-a="pickEmoji" '
+      + 'aria-label="Cambiar emoji del grupo">'+(f.emoji||I.smile)+'</button>'
+    + '<div class="field'+err('name')+'"><span class="lab">Nombre del grupo</span>'
+      + '<input class="inp has-lab" placeholder="Nombre del grupo" value="'+esc(f.name||'')+'" data-bind="name"></div>'
+    + selectField({action:'pickCategory', label:'Categoría', style:'margin-bottom:24px',
+        value: f.category ? catLabel(f.category) : '', icon:I.down});
+
+  /* Sin cambios no hay nada que explicar: el botón queda inerte. En cambio, si
+     el usuario borró el nombre sí se le señala el campo. */
+  const btn = !cambio
+    ? '<button class="btn btn-primary" disabled>Guardar cambios</button>'
+    : '<button class="btn btn-primary'+(falta?' btn-off':'')+'" data-a="saveGroupInfo" data-id="'+gr.id+'">Guardar cambios</button>';
+  return shell({title:'Editar información de grupo', body:b, flow:true, footer:btn});
 }
 
 /* ---------- Éxito de creación + compartir ---------- */
@@ -1502,7 +1571,12 @@ function scrGroup(){
     + I.gear
     + (solicitudes ? '<span class="dot-count">'+solicitudes+'</span>' : '')
   + '</button>';
-  let b = '<div class="hero"><div class="em" data-gtype="'+gr.type+'">'+gr.emoji+'</div><h2>'+esc(gr.name)+'</h2>'
+  /* El lápiz edita la identidad del grupo; el engranaje de arriba sigue siendo
+     la configuración general y son dos accesos distintos a propósito. */
+  let b = '<div class="hero"><div class="em" data-gtype="'+gr.type+'">'+gr.emoji+'</div>'
+        + '<div class="hero-name"><h2>'+esc(gr.name)+'</h2>'
+          + '<button class="edit-btn" data-a="editGroup" data-id="'+gr.id+'" '
+            + 'aria-label="Editar información del grupo">'+I.edit+'</button></div>'
         + '<span class="chip">'+typeLabel(gr.type)+'</span></div>';
 
   if(gr.type==='gastos'){
@@ -1520,7 +1594,7 @@ function scrGroup(){
                                : '<span class="pill due">Debes '+money(mine)+'</span>'));
         /* La fecha sube a la esquina para no recargar la línea de "Pagado por" */
         b += '<button class="expcard" data-a="openExpense" data-gid="'+gr.id+'" data-eid="'+e.id+'">'
-          + '<span class="avatar">'+(e.emoji||catOf(e.category).e)+'</span>'
+          + '<span class="avatar">'+e.emoji+'</span>'
           + '<span class="info"><span class="t">'+esc(e.title)+'</span>'
           + '<span class="s">Pagado por <b>'+esc(nameOf(e.paidBy))+'</b></span>'
           + (st ? '<span style="display:block;margin-top:8px">'+st+'</span>' : '')+'</span>'
@@ -1667,8 +1741,7 @@ function scrAddExpense(){
   const falta = faltantes(); sincronizarErrores(falta);
 
   let b = '<div class="row">'
-      + '<button class="emoji-btn'+err('category')+'" data-a="pickCategory">'+(f.category?catOf(f.category).e:I.smile)+'</button>'
-      + '<div class="field'+err('title')+'" style="margin:0"><input class="inp" placeholder="Título del gasto" value="'+esc(f.title||'')+'" data-bind="title"></div></div>'
+      + '<div class="field'+err('title')+'" style="margin:0"><input class="inp" placeholder="Nombre del gasto" value="'+esc(f.title||'')+'" data-bind="title"></div></div>'
     + moneyField({label:'Monto del gasto', bind:'amount', value:f.amount})
     + '<div class="row eq">'
       + selectField({action:'pickPayer', label:'Pagado por', value:esc(nameOf(f.paidBy||ME)), icon:I.down})
@@ -1765,8 +1838,8 @@ function scrExpense(){
   const e = gr.expenses.find(x=>x.id===state.params.eid); if(!e) return scrGroup();
   const mine = e.split[ME]||0;
   const iPaid = e.paidBy===ME || e.paid[ME];
-  let b = '<div class="hero"><div class="em">'+(e.emoji||catOf(e.category).e)+'</div><h2>'+esc(e.title)+'</h2>'
-    + '<div class="small muted">'+e.date+' · '+catOf(e.category).n+'</div></div>'
+  let b = '<div class="hero"><div class="em">'+e.emoji+'</div><h2>'+esc(e.title)+'</h2>'
+    + '<div class="small muted">'+e.date+'</div></div>'
     + '<div class="totalcard" style="margin-top:16px"><div class="k">Monto del gasto</div><div class="v">'+money(e.amount)+'</div>'
     + '<div class="n">Pagado por '+esc(nameOf(e.paidBy))+'</div></div>'
     + '<div class="section-title">Dividido entre</div>';
@@ -2174,7 +2247,8 @@ function renderModal(){
   }
   if(m.type==='category'){
     return sheet('<div class="grab"></div><h3>Categoría</h3><div class="cat-grid">'
-      + CATEGORIES.map(c=>'<button data-a="setCategory" data-v="'+c.id+'"><span style="font-size:22px">'+c.e+'</span>'+c.n+'</button>').join('')+'</div>');
+      + catsDe(state.form.type).map(c=>'<button data-a="setCategory" data-v="'+c.id+'">'
+          + '<span style="font-size:22px">'+c.e+'</span>'+c.n+'</button>').join('')+'</div>');
   }
   if(m.type==='splitmode'){
     return sheet('<div class="grab"></div><h3>División</h3><div class="cat-grid">'
@@ -2337,7 +2411,7 @@ function calendarHtml(field){
 const ROUTES = {
   home:scrHome, myAccounts:scrMyAccounts, newGroupType:scrNewGroupType,
   newExpenseGroup:scrNewExpenseGroup, newCollecta:scrNewCollecta, newRecurrent:scrNewRecurrent,
-  created:scrCreated, group:scrGroup, addExpense:scrAddExpense, expense:scrExpense, period:scrPeriod,
+  created:scrCreated, group:scrGroup, editGroup:scrEditGroup, addExpense:scrAddExpense, expense:scrExpense, period:scrPeriod,
   pay:scrPay, payConfirm:scrPayConfirm, receipt:scrReceipt, externalOk:scrExternalOk,
   config:scrConfig, cfgOptions:scrCfgOptions, cfgAdmins:scrCfgAdmins, addAdmin:scrAddAdmin, cfgAccount:scrCfgAccount,
   selectAccount:scrSelectAccount, join:scrJoin, joinSent:scrJoinSent, joined:scrJoined,
@@ -2482,18 +2556,25 @@ document.addEventListener('click', e=>{
     case 'newGroup': state.form={}; go('newGroupType'); break;
     case 'pickType':
       state.errors=[];
-      state.form={type:d.t, people:[{id:ME, name:person(ME).name}], emoji:null, accountId:null,
+      state.form={type:d.t, people:[{id:ME, name:person(ME).name}], accountId:null,
         frequency:'Mensual', deadline:todayStr(), payDay:null,
-        /* La colecta no muestra el campo; las demás arrancan sin categoría */
-        category: d.t==='colecta' ? 'regalos' : null};
+        /* Los tres tipos arrancan sin categoría: es obligatoria y la elige el usuario */
+        category:null};
       go(d.t==='gastos'?'newExpenseGroup':(d.t==='colecta'?'newCollecta':'newRecurrent'));
       break;
     case 'pickEmoji': openModal({type:'emoji'}); break;
-    case 'setEmoji': state.form.emoji=d.v; closeModal(); break;
+    /* Ya no se usa al crear: queda disponible para editar el emoji más adelante */
+    case 'setEmoji':
+      state.form.emoji=d.v;
+      /* A partir de aquí la categoría deja de tocar el emoji */
+      if(state.route==='editGroup') state.form.emojiManual=true;
+      closeModal(); break;
     case 'pickCategory': openModal({type:'category'}); break;
     case 'setCategory':
       state.form.category=d.v;
-      if(state.route==='addExpense') state.form.emoji=catOf(d.v).e;
+      /* Al editar, la categoría arrastra el emoji solo mientras el usuario no
+         haya elegido uno a mano: su decisión manda sobre el automatismo. */
+      if(state.route==='editGroup' && !state.form.emojiManual) state.form.emoji=catOf(d.v).e;
       closeModal(); break;
     case 'pickDayOfMonth': openModal({type:'dayOfMonth'}); break;
     case 'setDayOfMonth': state.form.payDay=parseInt(d.v,10); closeModal(); break;
@@ -2538,6 +2619,26 @@ document.addEventListener('click', e=>{
       back(); break;
     /* Antes de crear, se avisa de lo que falta en vez de no hacer nada */
     case 'createGroup': if(!avisarFaltantes()) createGroup(); break;
+    case 'editGroup': {
+      const gr=g(d.id); if(!gr) break;
+      state.errors=[];
+      /* Se guarda el punto de partida para saber si hubo cambios. Un emoji que
+         no coincide con el de su categoría solo pudo ponerlo el usuario, así
+         que se respeta como elección manual también al reabrir la pantalla. */
+      state.form={emoji:gr.emoji, name:gr.name, category:gr.category, type:gr.type,
+        emojiManual: gr.emoji !== catOf(gr.category).e,
+        orig:{emoji:gr.emoji, name:gr.name, category:gr.category}};
+      go('editGroup',{gid:gr.id}); break; }
+    case 'saveGroupInfo': {
+      const gr=g(d.id); const f=state.form;
+      const nombre=(f.name||'').trim();
+      if(!nombre){ state.errors=['name']; render(null,true);
+        toast('Te falta un campo por llenar','warn');
+        clearTimeout(window.__errT);
+        window.__errT=setTimeout(()=>{ state.errors=[]; render(null,true); },1200);
+        break; }
+      gr.emoji=f.emoji; gr.name=nombre; gr.category=f.category;
+      back(); toast('Información del grupo actualizada'); break; }
 
     /* Grupo */
     case 'openGroup': state.tab='gastos'; go('group',{gid:d.id}); break;
@@ -2731,7 +2832,10 @@ function createGroup(){
   const f = state.form;
   const id = uid('g');
   const base = {
-    id:id, type:f.type, emoji:f.emoji||'🎉', name:f.name.trim(), category:f.category||'otros',
+    /* El emoji arranca en el de la categoría elegida y queda guardado como
+       propiedad propia: al editarlo después, la categoría no se mueve. */
+    id:id, type:f.type, emoji:f.emoji || catOf(f.category).e || GROUP_EMOJI[f.type],
+    name:f.name.trim(), category:f.category,
     owner:ME, admins:[ME], members:commitPeople(f.people),
     accountId: f.type==='gastos' ? null : f.accountId,
     archived:false, requests:[],
@@ -2764,8 +2868,10 @@ function saveExpense(gid){
   const split = splitAmounts(gr);
   const paid = {};
   act.forEach(m=> paid[m] = (m===(f.paidBy||ME)));
-  gr.expenses.push({id:uid('e'), title:f.title.trim(), emoji:f.category?catOf(f.category).e:'🧾',
-    category:f.category||'otros', amount:amt, paidBy:f.paidBy||ME, date:f.date, split:split, paid:paid});
+  /* El gasto recibe un emoji al azar del repertorio general; el usuario podrá
+     cambiarlo más adelante desde la edición del gasto. */
+  gr.expenses.push({id:uid('e'), title:f.title.trim(), emoji:emojiDeGasto(),
+    amount:amt, paidBy:f.paidBy||ME, date:f.date, split:split, paid:paid});
   state.tab='gastos';
   back();
   toast('Gasto agregado con éxito: “'+f.title.trim()+'”');
