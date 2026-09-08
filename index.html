@@ -626,6 +626,11 @@ button.personcard:active{background:#FAFBFC}
 .screen[data-pay] .nav button:active{background:rgba(255,255,255,.16)}
 .screen[data-pay] .footer{background:transparent}
 .pay-actions,.flow-actions{margin-top:32px;padding-bottom:8px}
+/* Pantallas de confirmación: el contenido es corto, así que el botón baja al
+   final en vez de quedarse flotando a media altura. Sigue sin ser fixed: si el
+   contenido creciera, el botón lo seguiría. */
+.screen[data-screen="ok"] .body{display:flex;flex-direction:column}
+.screen[data-screen="ok"] .flow-actions{margin-top:auto;padding-top:32px}
 .flow-actions .btn+.btn{margin-top:8px}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* Carga de la transacción: overlay oscuro + cuadro blanco con loader gris */
@@ -1680,7 +1685,7 @@ function scrExpenseAdded(){
     + '<div class="edited-name">'+(e?e.emoji+' ':'')+'“'+esc(e?e.title:'')+'”</div>'
     + '<div class="type-chip" style="margin-top:16px"><span class="chip">'+esc(gr.name)+'</span></div>'
   + '</div>';
-  return shell({title:'', noBack:true, body:b, flow:true,
+  return shell({title:'', noBack:true, body:b, flow:true, screen:'ok',
     footer:'<button class="btn btn-primary" data-a="openGroupReplace" data-id="'+gr.id+'">Continuar</button>'});
 }
 
@@ -1693,7 +1698,7 @@ function scrExpenseEdited(){
     + '<div class="tick">'+I.checkBig+'</div>'
     + '<div class="edited-name">'+(e?e.emoji+' ':'')+'“'+esc(e?e.title:'')+'”</div>'
   + '</div>';
-  return shell({title:'', noBack:true, body:b, flow:true,
+  return shell({title:'', noBack:true, body:b, flow:true, screen:'ok',
     footer:'<button class="btn btn-primary" data-a="expenseEditedDone">Continuar</button>'});
 }
 
@@ -2508,7 +2513,7 @@ function scrJoined(){
   const b = '<div class="success">'
     + '<div class="tick" style="margin-top:24px">'+I.checkBig+'</div>'
     + '<h2>¡Listo!<br>Ahora formas parte de “'+esc(gr?gr.name:'')+'”</h2></div>';
-  return shell({title:'', noBack:true, body:b, flow:true, overlay:confettiHtml(),
+  return shell({title:'', noBack:true, body:b, flow:true, screen:'ok', overlay:confettiHtml(),
     footer:'<button class="btn btn-primary" data-a="openGroupReplace" data-id="'+(gr?gr.id:'')+'">Ver el grupo</button>'
           +'<button class="btn btn-soft" data-a="home">Ir al dashboard</button>'});
 }
