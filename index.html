@@ -171,6 +171,10 @@ p.sub{margin:0 0 16px;color:var(--ink-2);font-family:var(--font-ui);font-size:16
   font-family:var(--font-ui);font-size:12px;font-weight:400;color:#3D4558;
   line-height:16px;pointer-events:none}
 .field:focus-within .lab,.select-like:focus-within .lab{background:var(--field-focus)}
+/* Campo cuyo propio label hace de marcador mientras está vacío: no hay texto
+   flotante hasta que el usuario escribe. */
+.field.auto-lab:has(.inp:placeholder-shown) .lab{opacity:0}
+.field.auto-lab .inp::placeholder{color:var(--navy);opacity:1}
 /* Campo de texto: 48 de alto. El botón de emoji lo acompaña en 48x48. */
 .inp{width:100%;height:48px;border:1.5px solid var(--line);border-radius:var(--r);padding:0 16px;
   font-size:16.5px;color:#37424F;background:#fff;outline:none;font-family:inherit}
@@ -421,6 +425,8 @@ button.balcard:active{background:#FAFBFC}
 
 .optrow{width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;margin-bottom:16px;box-shadow:var(--shadow)}
 .optrow .n{font-size:16px;color:#37424F;font-weight:600}
+/* Misma fila, sin gesto: es una lectura, no una elección */
+.optrow.solo-ver{cursor:default}
 .radio{width:22px;height:22px;border-radius:11px;border:2px solid #C9CFD6;flex:0 0 22px;display:flex;align-items:center;justify-content:center}
 .radio.on{border-color:var(--orange)}
 .radio.on i{width:12px;height:12px;border-radius:6px;background:var(--orange);display:block}
@@ -1549,7 +1555,7 @@ function scrNewExpenseGroup(){
     + participantsBlock(true);
   return shell({title:'Nuevo grupo de pago', body:b, flow:true,
     footer:'<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="createGroup">'
-      + (state.tx ? 'Continuar' : 'Crear grupo de pago') + '</button>'});
+      + (f.desdeTx ? 'Continuar' : 'Crear grupo de pago') + '</button>'});
 }
 
 /* ---------- Crear: colecta ---------- */
@@ -1573,7 +1579,7 @@ function scrNewCollecta(){
     + participantsBlock();
   return shell({title:'Nuevo grupo de pago', body:b, flow:true,
     footer:'<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="createGroup">'
-      + (state.tx ? 'Continuar' : 'Crear grupo de pago') + '</button>'});
+      + (f.desdeTx ? 'Continuar' : 'Crear grupo de pago') + '</button>'});
 }
 
 /* ---------- Crear: pago recurrente ---------- */
@@ -1603,7 +1609,7 @@ function scrNewRecurrent(){
     + participantsBlock(true);
   return shell({title:'Nuevo grupo de pago', body:b, flow:true,
     footer:'<button class="btn btn-primary'+(falta.length?' btn-off':'')+'" data-a="createGroup">'
-      + (state.tx ? 'Continuar' : 'Crear grupo de pago') + '</button>'});
+      + (f.desdeTx ? 'Continuar' : 'Crear grupo de pago') + '</button>'});
 }
 
 /* ---------- Detalle de transacción ---------- */
@@ -1958,8 +1964,8 @@ function scrAddExpense(){
     : '';
   if(desdeTx) b += '<div class="type-chip" style="margin:0 0 24px"><span class="chip">'+esc(gr.name)+'</span></div>';
   b += '<div class="row">'
-      + '<div class="field'+err('title')+'" style="margin:0"><span class="lab">Nombre del gasto</span>'
-        + '<input class="inp has-lab" placeholder="Ej. Comida IKEA" value="'+esc(f.title||'')+'" data-bind="title"></div></div>'
+      + '<div class="field auto-lab'+err('title')+'" style="margin:0"><span class="lab">Nombre del gasto</span>'
+        + '<input class="inp has-lab" placeholder="Nombre del gasto" value="'+esc(f.title||'')+'" data-bind="title"></div></div>'
     + moneyField({label:'Monto del gasto', bind:'amount', value:f.amount, locked:desdeTx})
     + '<div class="row eq">'
       + selectField({action:'pickPayer', label:'Pagado por', value:esc(nameOf(f.paidBy||ME)),
@@ -2037,6 +2043,10 @@ function descuadre(gr){
   const dif = round2((Number(f.amount)||0) - suma);
   return Math.abs(dif) < 0.01 ? 0 : dif;
 }
+
+/* Cambiar administradores, permisos o la cuenta del grupo es cosa de admins.
+   Se comprueba también al ejecutar la acción, no solo al pintar el botón. */
+function mandaEn(gr){ return !!gr && isAdmin(gr); }
 
 /* Quién puede crear (y por tanto editar) gastos en el grupo */
 function puedeAgregarGastos(gr){
@@ -2263,12 +2273,17 @@ function scrConfig(){
   const row=(a,ic,t,v)=>'<button class="card-btn plain" data-a="'+a+'" data-gid="'+gr.id+'"><span style="display:flex;align-items:center;gap:16px">'
     +'<span style="color:var(--navy)">'+ic+'</span><span><span class="ttl" style="color:#37424F;font-size:16px">'+t+'</span>'
     +(v?'<span class="txt">'+v+'</span>':'')+'</span></span><span class="chev">'+I.chev+'</span></button>';
+  /* Sin ser administrador se puede mirar la configuración, no cambiarla */
+  const mando = isAdmin(gr);
   let b = row('cfgAdmins',I.shield,'Administradores', gr.admins.map(m=>nameOf(m)).join(', '))
     + row('cfgAdd',I.cash,'Quién puede agregar gastos', LBL_ADD[gr.perms.addExpense])
     + row('cfgJoin',I.addu,'Quién puede unirse', LBL_JOIN[gr.perms.join])
-    + row('cfgInvite',I.invite,'Quién puede invitar', LBL_INV[gr.perms.invite])
-    + row('cfgAccount',I.wallet,'Cuenta predeterminada para recibir pagos',
+    + row('cfgInvite',I.invite,'Quién puede invitar', LBL_INV[gr.perms.invite]);
+  /* La cuenta para recibir pagos es del grupo: solo la toca un administrador */
+  if(mando) b += row('cfgAccount',I.wallet,'Cuenta predeterminada para recibir pagos',
         acctOf(gr) ? acctOf(gr).name+' · '+acctOf(gr).num : 'Se elige al crear cada gasto');
+  else b += '<div class="notice" style="margin-top:16px">'+I.warn
+    + '<span>Solo los administradores del grupo pueden cambiar esta configuración.</span></div>';
 
   /* Solicitudes pendientes */
   const abiertoSol = accOpen('pendientes', gr.requests.length);
@@ -2328,12 +2343,19 @@ function scrCfgOptions(){
     invite:{title:'Quién puede invitar', sub:'Selecciona quién puede compartir el grupo:', key:'invite',
       opts:[['todos','Todos los miembros'],['admins','Solo administradores']]}
   }[kind];
-  let b = '<p class="sub">'+MAP.sub+'</p>';
+  const mando = isAdmin(gr);
+  let b = '<p class="sub">'+(mando ? MAP.sub : 'Así está configurado el grupo:')+'</p>';
   MAP.opts.forEach(([v,l])=>{
     const on = gr.perms[MAP.key]===v;
-    b += '<button class="optrow" data-a="setPerm" data-gid="'+gr.id+'" data-key="'+MAP.key+'" data-val="'+v+'">'
-      + '<span class="n">'+l+'</span><span class="radio '+(on?'on':'')+'"><i></i></span></button>';
+    /* Sin mando la fila deja de ser un control: solo muestra la elección */
+    b += mando
+      ? '<button class="optrow" data-a="setPerm" data-gid="'+gr.id+'" data-key="'+MAP.key+'" data-val="'+v+'">'
+        + '<span class="n">'+l+'</span><span class="radio '+(on?'on':'')+'"><i></i></span></button>'
+      : '<div class="optrow solo-ver"><span class="n">'+l+'</span>'
+        + '<span class="radio '+(on?'on':'')+'"><i></i></span></div>';
   });
+  if(!mando) b += '<div class="notice" style="margin-top:16px">'+I.warn
+    + '<span>Solo los administradores del grupo pueden cambiar esta configuración.</span></div>';
   if(kind==='join'){
     b += '<div class="notice" style="margin-top:16px">'+I.warn+'<span>'+(gr.perms.join==='enlace'
       ? 'Las personas con este enlace podrán unirse al grupo.'
@@ -2353,15 +2375,22 @@ function personCard(m, gr, extra, accion){
 }
 function scrCfgAdmins(){
   const gr = g(state.params.gid); if(!gr) return scrHome();
+  const mando = isAdmin(gr);
   let b = '';
   gr.members.filter(m=>gr.admins.includes(m)).forEach(m=>{
     const extra = gr.owner===m
       ? '<span class="tag-own">Dueño</span>'
-      : '<button class="btn btn-soft btn-xs" data-a="rmAdmin" data-gid="'+gr.id+'" data-id="'+m+'">Quitar</button>';
+      : (mando ? '<button class="btn btn-soft btn-xs" data-a="rmAdmin" data-gid="'+gr.id+'" data-id="'+m+'">Quitar</button>' : '');
     b += personCard(m, gr, extra, null);
   });
-  b += '<button class="btn btn-primary btn-md" data-a="goAddAdmin" data-gid="'+gr.id+'" style="margin-top:8px">'
-     + 'Agregar admin '+I.plus+'</button>';
+  /* Quien no es administrador ve quiénes lo son, y hasta ahí */
+  if(mando){
+    b += '<button class="btn btn-primary btn-md" data-a="goAddAdmin" data-gid="'+gr.id+'" style="margin-top:8px">'
+       + 'Agregar admin '+I.plus+'</button>';
+  } else {
+    b += '<div class="notice" style="margin-top:16px">'+I.warn
+      + '<span>Solo los administradores pueden agregar o quitar administradores.</span></div>';
+  }
   return shell({title:'Administradores', body:b});
 }
 /* Lista de miembros con buscador para elegir a quién ascender */
@@ -2825,7 +2854,7 @@ document.addEventListener('click', e=>{
     case 'tab': state.tab=d.t; render(null,true); break;
     case 'myAccounts': go('myAccounts'); break;
     /* Los tres escenarios del hub, cada uno entra directo a su flujo */
-    case 'escCrear': state.errors=[]; state.form={}; go('newGroupType'); break;
+    case 'escCrear': state.errors=[]; state.form={}; state.tx=null; go('newGroupType'); break;
     case 'escUnirse': state.form={}; go('join',{gid:'inv'}); break;
     case 'escTransaccion': state.tx=null; go('transaction',{txid:'t1'}); break;
     case 'openTx': go('transaction',{txid:d.id}); break;
@@ -2834,7 +2863,10 @@ document.addEventListener('click', e=>{
     case 'txNewGroup':
       state.errors=[];
       state.form={type:'gastos', people:[{id:ME, name:person(ME).name}], accountId:null,
-        frequency:'Mensual', deadline:todayStr(), payDay:null, category:null};
+        frequency:'Mensual', deadline:todayStr(), payDay:null, category:null,
+        /* Marca este formulario concreto: solo aquí el grupo es un paso previo
+           al gasto. Un state.tx suelto no debe alterar el alta normal. */
+        desdeTx:true};
       go('newExpenseGroup'); break;
     case 'txPickGroup': go('pickGroupTx'); break;
     case 'txToGroup': abrirGastoDeTx(g(d.id)); break;
@@ -3046,17 +3078,23 @@ document.addEventListener('click', e=>{
 
     /* Configuración */
     case 'cfgAdmins': go('cfgAdmins',{gid:gid}); break;
-    case 'goAddAdmin': state.form={adminQuery:''}; go('addAdmin',{gid:d.gid}); break;
+    case 'goAddAdmin': if(!mandaEn(g(d.gid))) break;
+      state.form={adminQuery:''}; go('addAdmin',{gid:d.gid}); break;
     case 'cfgAdd': go('cfgOptions',{gid:gid, kind:'add'}); break;
     case 'cfgJoin': go('cfgOptions',{gid:gid, kind:'join'}); break;
     case 'cfgInvite': go('cfgOptions',{gid:gid, kind:'invite'}); break;
     case 'cfgAccount': go('cfgAccount',{gid:gid}); break;
-    case 'setPerm': { const gr=g(gid); gr.perms[d.key]=d.val; render(null,true); toast('Configuración actualizada'); break; }
-    case 'setGroupAccount': { const gr=g(gid); gr.accountId=d.id; render(null,true); toast('Cuenta actualizada'); break; }
-    case 'askAdmin': openModal({type:'confirmAdmin', gid:gid, id:d.id}); break;
-    case 'doAdmin': { const gr=g(d.gid); if(!gr.admins.includes(d.id)) gr.admins.push(d.id);
+    case 'setPerm': { const gr=g(gid); if(!mandaEn(gr)) break;
+      gr.perms[d.key]=d.val; render(null,true); toast('Configuración actualizada'); break; }
+    case 'setGroupAccount': { const gr=g(gid); if(!mandaEn(gr)) break;
+      gr.accountId=d.id; render(null,true); toast('Cuenta actualizada'); break; }
+    case 'askAdmin': if(!mandaEn(g(gid))) break;
+      openModal({type:'confirmAdmin', gid:gid, id:d.id}); break;
+    case 'doAdmin': { const gr=g(d.gid); if(!mandaEn(gr)) break;
+      if(!gr.admins.includes(d.id)) gr.admins.push(d.id);
       state.modal=null; state.form={adminQuery:''}; back(); toast('Administrador agregado'); break; }
-    case 'rmAdmin': { const gr=g(gid); gr.admins=gr.admins.filter(x=>x!==d.id); render(null,true); toast('Administrador removido'); break; }
+    case 'rmAdmin': { const gr=g(gid); if(!mandaEn(gr)) break;
+      gr.admins=gr.admins.filter(x=>x!==d.id); render(null,true); toast('Administrador removido'); break; }
     case 'archiveGroup': openModal({type:'confirmArchive', gid:gid}); break;
     case 'doArchive': { const gr=g(gid); gr.archived=!gr.archived; closeModal();
       toast(gr.archived?'Grupo archivado':'Grupo reabierto'); if(gr.archived) home(); break; }
@@ -3202,7 +3240,7 @@ function createGroup(){
   state.stack=[{route:'home',params:{},tab:'gastos'}];
   /* Naciendo de una transacción, el grupo es solo el primer paso: sigue el
      gasto y, ya con todo dentro, la pantalla de compartir. */
-  if(state.tx){ abrirGastoDeTx(base, true); return; }
+  if(state.tx && f.desdeTx){ abrirGastoDeTx(base, true); return; }
   go('created',{gid:id},{replace:true, up:true});
 }
 
