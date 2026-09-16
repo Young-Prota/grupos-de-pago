@@ -795,6 +795,171 @@ button.personcard:active{background:#FAFBFC}
   .scan-actions{bottom:calc(24px + env(safe-area-inset-bottom))}
   .toast{bottom:calc(24px + env(safe-area-inset-bottom))}
 }
+/* ============================================================
+   CONOCE LA INVESTIGACIÓN
+   No es un flujo del producto, así que no vive dentro del teléfono:
+   es una lectura. Sale del marco para respirar en escritorio y en
+   móvil ocupa la pantalla completa, igual que el resto del prototipo.
+   Todo va prefijado rs- para no rozar ninguna clase existente.
+   ============================================================ */
+
+/* Entrada desde el hub: bloque aparte, separado de los escenarios */
+.hub-research{background:var(--chip);border-radius:var(--r);padding:20px 16px;text-align:left}
+.hub-research h3{margin:0 0 8px;font-family:var(--font-ui);font-size:16px;font-weight:600;color:var(--navy)}
+.hub-research p{margin:0 0 16px;font-family:var(--font-ui);font-size:14px;font-weight:400;
+  line-height:1.45;color:var(--ink-2)}
+
+/* ===== La página ===== */
+.rs-page{position:fixed;inset:0;z-index:60;overflow-y:auto;overflow-x:hidden;
+  background:#fff;color:var(--ink);-webkit-overflow-scrolling:touch}
+.rs-page[hidden]{display:none}
+body.rs-open{overflow:hidden}
+
+.rs-top{position:sticky;top:0;z-index:2;background:rgba(255,255,255,.94);
+  -webkit-backdrop-filter:saturate(180%) blur(10px);backdrop-filter:saturate(180%) blur(10px);
+  border-bottom:1px solid var(--line-2)}
+.rs-top .in{max-width:768px;margin:0 auto;display:flex;align-items:center;
+  padding:calc(10px + env(safe-area-inset-top)) 24px 10px}
+.rs-back{display:inline-flex;align-items:center;gap:8px;background:none;border:0;cursor:pointer;
+  padding:8px;margin-left:-8px;border-radius:10px;color:var(--orange);
+  font-family:var(--font-ui);font-size:14px;font-weight:500}
+.rs-back span{color:var(--navy)}
+.rs-back:active{background:var(--orange-l)}
+
+.rs-wrap{max-width:768px;margin:0 auto;padding:0 24px}
+
+/* ===== Intro ===== */
+.rs-intro{padding:56px 0 8px}
+.rs-eyebrow{display:block;font-family:var(--font-ui);font-size:12px;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--orange-d);margin-bottom:16px}
+.rs-h1{font-family:var(--font-display);font-size:34px;line-height:1.12;font-weight:700;
+  letter-spacing:-.02em;color:var(--navy);margin:0 0 16px}
+.rs-lead{margin:0;max-width:46ch;font-family:var(--font-ui);font-size:17px;font-weight:400;
+  line-height:1.55;color:var(--ink-2)}
+
+/* ===== Secciones de la narrativa ===== */
+.rs-sec{padding:8px 0 40px;border-top:1px solid var(--line-2)}
+.rs-sec:first-of-type{border-top:0}
+.rs-sec>.rs-h2{margin-top:40px}
+.rs-sec:first-of-type>.rs-h2{margin-top:24px}
+
+/* Bloque de barras: la pregunta literal de la encuesta y su base */
+.rs-block{margin:32px 0 8px}
+.rs-q{margin:0 0 4px;font-family:var(--font-ui);font-size:16px;font-weight:600;
+  line-height:1.4;color:var(--navy)}
+.rs-base{margin:0 0 24px;font-family:var(--font-ui);font-size:12px;font-weight:400;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+
+/* Dato de contraste, en prosa: no todo hallazgo necesita gráfico */
+.rs-nota{margin:32px 0 8px;padding-left:16px;border-left:2px solid var(--line);
+  font-family:var(--font-ui);font-size:16px;font-weight:400;line-height:1.55;
+  color:var(--ink-2);max-width:52ch}
+
+/* ===== Hallazgos con círculo ===== */
+.rs-stat{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  text-align:center;gap:24px;padding:48px 0}
+.rs-stat+.rs-stat{border-top:1px solid var(--line-2)}
+.rs-stat .txt{max-width:34ch}
+.rs-stat .txt p{margin:0;font-family:var(--font-display);font-size:22px;line-height:1.3;
+  font-weight:500;letter-spacing:-.01em;color:var(--navy)}
+
+/* El círculo: pista tenue + trazo en el naranja de siempre.
+   El trazo se dibuja moviendo el dash-offset; el número lo lleva el JS. */
+.rs-ring{position:relative;flex:0 0 auto;width:148px;height:148px}
+.rs-ring svg{display:block;width:100%;height:100%;transform:rotate(-90deg)}
+.rs-ring .trk{fill:none;stroke:var(--line-2);stroke-width:7}
+.rs-ring .val{fill:none;stroke:var(--orange);stroke-width:7;stroke-linecap:round;
+  stroke-dasharray:326.73;stroke-dashoffset:326.73;
+  transition:stroke-dashoffset 820ms cubic-bezier(.22,.61,.36,1)}
+.rs-ring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:34px;font-weight:700;letter-spacing:-.02em;
+  color:var(--navy);font-variant-numeric:tabular-nums}
+.rs-ring .num i{font-style:normal;font-size:.5em;font-weight:500;margin-left:2px}
+
+/* ===== Barras ===== */
+.rs-h2{font-family:var(--font-display);font-size:26px;line-height:1.2;font-weight:700;
+  letter-spacing:-.015em;color:var(--navy);margin:32px 0}
+.rs-bar{margin-bottom:24px}
+.rs-bar:last-child{margin-bottom:0}
+.rs-bar .hd{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:8px}
+.rs-bar .nm{font-family:var(--font-ui);font-size:15px;font-weight:500;line-height:1.35;color:#37424F}
+.rs-bar .pc{flex:0 0 auto;font-family:var(--font-display);font-size:16px;font-weight:700;
+  color:var(--navy);font-variant-numeric:tabular-nums}
+.rs-track{height:8px;border-radius:4px;background:var(--line-2);overflow:hidden}
+.rs-track i{display:block;width:0;height:100%;border-radius:4px;background:var(--orange);
+  transition:width 820ms cubic-bezier(.22,.61,.36,1)}
+
+/* ===== En sus propias palabras =====
+   Rompe con los gráficos a propósito: banda cálida, sin círculos ni barras,
+   y la cita como único protagonista. Sin nombre, sin foto y sin avatar —
+   son respuestas de una encuesta, no recomendaciones del producto. */
+.rs-voices{background:var(--sel);padding:56px 0 64px}
+.rs-voices .rs-h2{margin-top:0}
+.rs-note{margin:0 0 32px;max-width:46ch;font-family:var(--font-ui);font-size:16px;
+  font-weight:400;line-height:1.55;color:var(--ink-2)}
+.rs-quotes{display:grid;gap:16px}
+.rs-quote{margin:0;padding:28px 24px;background:#fff;border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--shadow);
+  opacity:0;transform:translateY(12px);
+  transition:opacity 600ms ease-out,transform 600ms cubic-bezier(.22,.61,.36,1)}
+.rs-quote.on{opacity:1;transform:none}
+/* Una rayita naranja corta y nada más: el adorno justo para que la tarjeta
+   no parezca un testimonio con firma. */
+.rs-quote::before{content:"";display:block;width:28px;height:3px;border-radius:2px;
+  background:var(--orange);margin-bottom:20px}
+.rs-quote blockquote{margin:0;font-family:var(--font-display);font-size:20px;line-height:1.4;
+  font-weight:500;letter-spacing:-.01em;color:var(--navy)}
+
+/* ===== Cierre: la oportunidad para Popular ===== */
+.rs-close{background:var(--navy);color:#fff;padding:72px 0 80px}
+.rs-close .rs-wrap{text-align:center}
+.rs-close h2{margin:0 auto 40px;max-width:20ch;font-family:var(--font-display);font-size:28px;
+  line-height:1.2;font-weight:700;letter-spacing:-.02em;color:#fff}
+.rs-close .apoyo{margin:24px auto 0;max-width:42ch;font-family:var(--font-ui);font-size:14px;
+  font-weight:400;line-height:1.5;color:rgba(255,255,255,.62)}
+.rs-close p{margin:0 auto;max-width:42ch;font-family:var(--font-ui);font-size:17px;font-weight:400;
+  line-height:1.6;color:rgba(255,255,255,.82)}
+.rs-hero{width:212px;height:212px;margin:0 auto 32px}
+.rs-hero .trk{stroke:rgba(255,255,255,.18);stroke-width:5.5}
+.rs-hero .val{stroke:var(--orange);stroke-width:5.5}
+.rs-hero .num{font-size:56px;color:#fff}
+
+.rs-foot{padding:40px 0 64px;text-align:center}
+.rs-foot p{margin:0 0 24px;font-family:var(--font-ui);font-size:13px;font-weight:400;
+  line-height:1.5;color:var(--muted)}
+
+/* Con movimiento reducido los valores salen ya puestos: el JS no anima
+   y estas transiciones tampoco tienen nada que hacer. */
+@media (prefers-reduced-motion:reduce){
+  .rs-ring .val,.rs-track i,.rs-quote{transition:none}
+  .rs-quote{opacity:1;transform:none}
+}
+
+/* De 720 para arriba el bloque gana aire y los hallazgos alternan lado */
+@media (min-width:720px){
+  .rs-intro{padding-top:80px}
+  .rs-h1{font-size:46px}
+  .rs-h2{font-size:32px}
+  .rs-stat{flex-direction:row;align-items:center;text-align:left;gap:48px;padding:56px 0}
+  .rs-stat.alt{flex-direction:row-reverse}
+  .rs-stat.mid{flex-direction:column;align-items:center;text-align:center;gap:24px}
+  .rs-stat .txt p{font-size:26px}
+  .rs-ring{width:168px;height:168px}
+  .rs-ring .num{font-size:38px}
+  .rs-sec{padding-bottom:56px}
+  .rs-q{font-size:18px}
+  .rs-nota{font-size:17px;padding-left:24px}
+  .rs-bar .nm{font-size:16px}
+  .rs-bar .pc{font-size:18px}
+  .rs-voices{padding:80px 0 88px}
+  .rs-quotes{grid-template-columns:1fr 1fr;gap:24px}
+  .rs-quote{padding:32px}
+  .rs-quote blockquote{font-size:22px}
+  .rs-close{padding:96px 0 104px}
+  .rs-close h2{font-size:36px}
+  .rs-hero{width:260px;height:260px}
+  .rs-hero .num{font-size:68px}
+}
 </style>
 </head>
 <body>
@@ -813,6 +978,10 @@ button.personcard:active{background:#FAFBFC}
   </div>
   <div class="legend">Prototipo demostrativo. <b>No es una app bancaria real:</b> no hay inicio de sesión, pagos reales ni datos personales. Todos los nombres, cuentas y montos son ficticios.</div>
 </div>
+
+<!-- Resultados de la investigación. Vive fuera del marco del teléfono y se
+     rellena la primera vez que se abre; después conserva su estado. -->
+<div class="rs-page" id="research" hidden aria-hidden="true"></div>
 
 <script>
 "use strict";
@@ -1185,11 +1354,331 @@ function scrHub(){
   const b = '<h2 class="t ui">¿Qué quieres probar?</h2>'
     + opt('escCrear','Crear grupo')
     + opt('escUnirse','Unirse a un grupo')
-    + opt('escTransaccion','Compartir gasto desde una transacción');
+    + opt('escTransaccion','Compartir gasto desde una transacción')
+    /* La investigación no es un escenario del producto: por eso no entra en
+       la lista de arriba, sino en su propio bloque, separado por una línea. */
+    + '<div class="hr"></div>'
+    + '<div class="hub-research">'
+      + '<h3>Conoce la investigación</h3>'
+      + '<p>Descubre qué revelaron 49 personas sobre cómo comparten y gestionan sus gastos.</p>'
+      + '<button class="btn btn-primary btn-md" data-a="openResearch">Ver resultados</button>'
+    + '</div>';
   return shell({title:'Prototipo Grupos de Pago', body:b,
     /* Flecha decorativa: el hub es el principio del prototipo */
     leftHtml:'<span class="nav-ghost" aria-hidden="true">'+I.back+'</span>',
     right:'<button class="info-btn" data-a="goInfo" aria-label="Qué es Grupos de pago">'+I.infoNav+'</button>'});
+}
+
+/* ---------- Conoce la investigación ----------
+   Todo lo que se ve en esta vista sale del CSV de la encuesta
+   ("Gestión de Gastos Compartidos", 49 participantes). Cada bloque anota de
+   qué columna viene y sobre cuántas respuestas válidas está calculado, para
+   que cualquiera pueda rehacer la cuenta.
+
+   Ojo con la base: no todas las preguntas tienen 49 respuestas. La de
+   situaciones vividas tiene 48 (una persona la dejó en blanco), así que sus
+   porcentajes van sobre 48, no sobre 49.
+
+   Los porcentajes se calculan aquí a partir de n/base: no hay ninguna cifra
+   escrita a mano que pueda quedar descolgada del conteo. */
+
+const RESEARCH = {
+  n: 49,
+
+  secciones: [
+    {
+      titulo: 'Cómo compartimos gastos',
+      bloques: [
+        {tipo:'ring', mod:'', col:'C5', n:35, base:49,
+         t:'Comparte gastos al menos una vez al mes.'},
+
+        {tipo:'bars', col:'C6', base:49, multi:false,
+         q:'Cuando existe un gasto compartido, ¿cómo suelen manejar el pago?',
+         items:[
+           {n:32, nom:'Una persona paga y los demás le transfieren posteriormente'},
+           {n:13, nom:'Depende de la situación'},
+           {n:3,  nom:'Cada persona paga su parte por separado'},
+           {n:1,  nom:'Una persona paga y los demás le entregan efectivo'}
+         ]},
+
+        {tipo:'ring', mod:'alt', col:'C3', n:45, base:49,
+         t:'Usa la transferencia bancaria como su método más frecuente para enviar dinero.'}
+      ]
+    },
+    {
+      titulo: 'Qué problemas aparecen',
+      bloques: [
+        {tipo:'bars', col:'C9', base:48, multi:true,
+         q:'¿Has experimentado alguna de las siguientes situaciones?',
+         items:[
+           {n:35, nom:'Alguien olvidó pagarme'},
+           {n:33, nom:'No recordaba cuánto me debían'},
+           {n:31, nom:'Tuve que recordar varias veces que me pagaran'},
+           {n:18, nom:'No sabía quién había pagado y quién no'},
+           {n:18, nom:'Recibí pagos por diferentes medios y fue difícil llevar control'},
+           {n:9,  nom:'Hubo incomodidad o discusiones relacionadas con el dinero'}
+         ]},
+
+        {tipo:'ring', mod:'', col:'C10', n:34, base:49,
+         t:'Calificó con 4 o 5 su nivel de incomodidad al cobrar.'},
+
+        /* El contraste importa y no necesita gráfico: la molestia está en
+           cobrar, no en llevar la cuenta. */
+        {tipo:'nota', col:'C11', n:11, base:49,
+         t:'En contraste, solo 22% calificó con 4 o 5 la dificultad para llevar el control de quién ya pagó y quién no.'}
+      ]
+    },
+    {
+      titulo: 'Qué tan relevante es resolverlos',
+      bloques: [
+        {tipo:'ring', mod:'mid', col:'C15', n:47, base:49,
+         t:'Considera útil una herramienta para organizar y dar seguimiento a gastos compartidos.'}
+      ]
+    },
+    {
+      titulo: '¿Qué esperan de una solución?',
+      bloques: [
+        {tipo:'bars', col:'C16', base:49, multi:true, tope:'hasta cuatro por persona',
+         q:'¿Qué funcionalidades considerarías más importantes?',
+         items:[
+           {n:34, nom:'Seguimiento de quién ha pagado'},
+           {n:29, nom:'Recordatorios automáticos'},
+           {n:29, nom:'División automática del monto'},
+           {n:23, nom:'Integración con otros bancos'},
+           {n:23, nom:'Generar enlace para solicitar pagos'},
+           {n:19, nom:'Compartir mediante código QR'},
+           {n:16, nom:'Registro de pagos realizados en efectivo'},
+           {n:9,  nom:'Historial de gastos compartidos'},
+           {n:6,  nom:'Gestión de suscripciones compartidas'}
+         ]}
+      ]
+    }
+  ],
+
+  /* C18 — ¿Hay alguna función adicional que te gustaría tener...?
+     Las 14 respuestas de texto libre, literales. Se guardan todas; en pantalla
+     salen las marcadas con ver:true, elegidas por patrón distinto. Las demás
+     quedan aquí para poder subirlas cuando haga falta. */
+  citas: [
+    {ver:true,  patron:'claridad del monto',
+     t:'Que a todos le llegue una notificación clara de el monto a pagar'},
+    {ver:true,  patron:'estado del grupo',
+     t:'Notificación de progreso si todos pagaron'},
+    {ver:true,  patron:'división flexible',
+     t:'Que la division del monto no sea necesariamente perfecta sino que se puede poner la cantidad que cada persona entiende que tiene que pagar'},
+    {ver:true,  patron:'varios grupos a la vez',
+     t:'Llevar varias cuentas compartidas pendientes al mismo tiempo'},
+    {ver:true,  patron:'garantía de cobro',
+     t:'Poder hacer que el banco retenga los fondos del pago automáticamente acepte el enlace de pago compartido y si no tiene fondo que lo rebote'},
+    {ver:true,  patron:'identificar al participante',
+     t:'Un sistema de enlace por numero de telefono o por cedula'},
+    {ver:false, patron:'pagar por separado',
+     t:'pagar separado con tarjeta'},
+    {ver:false, patron:'pago sin fricción (NFC)',
+     t:'No sé que tan complicado sea el intentar integrar tecnologías como NFC para que el trma de pagos y transferencias a otras personas para pagos compartidos sea igual de sencillo que pagar en una gienda con solo acercar el teléfono'},
+    {ver:false, patron:'repite opciones ya listadas',
+     t:'Gestión de suscripciones compartidas y Seguimiento de quién ha pagado'},
+    {ver:false, patron:'repite opciones ya listadas',
+     t:'Todas las demás que no pude seleccionar'},
+    {ver:false, patron:'sin propuesta', t:'No'},
+    {ver:false, patron:'sin propuesta', t:'No'},
+    {ver:false, patron:'sin propuesta', t:'No'},
+    {ver:false, patron:'sin propuesta', t:'No, están cubiertas en esta encuesta'}
+  ],
+
+  cierre: {
+    col:'C17', n:37, base:49,
+    t:'¿Puede esta funcionalidad atraer usuarios a Popular?',
+    d:'Consideró probable o muy probable utilizar otro banco para gestionar sus gastos compartidos si el suyo no ofreciera esta funcionalidad.',
+    /* C2 — el 92% ya tiene dónde irse */
+    apoyo:'92% de los participantes tiene cuentas en más de un banco.'
+  }
+};
+
+/* n sobre base, redondeado. Única fuente de los porcentajes de la vista. */
+const pct = (n, base) => Math.round(n / base * 100);
+
+/* Perímetro del círculo del SVG (2πr con r=52). El trazo se dibuja
+   moviendo el dash-offset de este largo a la fracción que toque. */
+const RS_CIRC = 326.73;
+const RS_DUR = 820;      /* ms: el número y el trazo terminan juntos */
+const RS_STAGGER = 90;   /* ms entre barra y barra */
+const RS_QSTAGGER = 100; /* ms entre cita y cita */
+
+function ringHtml(p, extra){
+  return '<div class="rs-ring'+(extra?' '+extra:'')+'" data-ring="'+p+'"'
+      + ' role="img" aria-label="'+p+' por ciento">'
+    + '<svg viewBox="0 0 120 120" aria-hidden="true">'
+      + '<circle class="trk" cx="60" cy="60" r="52"/>'
+      + '<circle class="val" cx="60" cy="60" r="52"/>'
+    + '</svg>'
+    /* Arranca en 0 y el JS lo sube; con movimiento reducido salta al final */
+    + '<div class="num" aria-hidden="true"><span>0</span><i>%</i></div>'
+  + '</div>';
+}
+
+/* Pie de un bloque de barras: cómo se preguntó y sobre cuántos se cuenta.
+   Va siempre, también cuando la base es 49, porque la honestidad del dato
+   no debería depender de si el número es redondo. */
+function baseHtml(b){
+  const partes = [b.multi ? 'Selección múltiple' : 'Selección única'];
+  if(b.tope) partes.push(b.tope);
+  partes.push(b.base + ' respuestas');
+  return '<p class="rs-base">'+esc(partes.join(' · '))+'</p>';
+}
+
+function bloqueHtml(b){
+  if(b.tipo === 'ring'){
+    return '<section class="rs-stat'+(b.mod?' '+b.mod:'')+'">'
+      + ringHtml(pct(b.n, b.base))
+      + '<div class="txt"><p>'+esc(b.t)+'</p></div>'
+    + '</section>';
+  }
+  if(b.tipo === 'nota'){
+    return '<p class="rs-nota">'+esc(b.t)+'</p>';
+  }
+  /* barras: se ordenan como vienen, que ya es de mayor a menor */
+  let filas = '';
+  b.items.forEach((it,i)=>{
+    const p = pct(it.n, b.base);
+    filas += '<div class="rs-bar">'
+      + '<div class="hd"><span class="nm">'+esc(it.nom)+'</span><span class="pc">'+p+'%</span></div>'
+      + '<div class="rs-track"><i data-bar="'+p+'" style="transition-delay:'+(i*RS_STAGGER)+'ms"></i></div>'
+    + '</div>';
+  });
+  return '<div class="rs-block">'
+    + '<h3 class="rs-q">'+esc(b.q)+'</h3>'
+    + baseHtml(b)
+    + '<div data-bars="1">'+filas+'</div>'
+  + '</div>';
+}
+
+function researchHtml(){
+  let cuerpo = '';
+  RESEARCH.secciones.forEach(s=>{
+    cuerpo += '<section class="rs-sec">'
+      + '<h2 class="rs-h2">'+esc(s.titulo)+'</h2>'
+      + s.bloques.map(bloqueHtml).join('')
+    + '</section>';
+  });
+
+  let citas = '';
+  RESEARCH.citas.filter(q=>q.ver).forEach((q,i)=>{
+    /* figure+blockquote sin figcaption: verbatim, sin atribución */
+    citas += '<figure class="rs-quote" data-quote="1" style="transition-delay:'+(i*RS_QSTAGGER)+'ms">'
+      + '<blockquote>\u201C'+esc(q.t)+'\u201D</blockquote>'
+    + '</figure>';
+  });
+
+  const c = RESEARCH.cierre;
+
+  return '<div class="rs-top"><div class="in">'
+      + '<button class="rs-back" data-a="closeResearch">'+I.back+'<span>Volver al prototipo</span></button>'
+    + '</div></div>'
+
+    + '<div class="rs-wrap">'
+      + '<header class="rs-intro">'
+        + '<span class="rs-eyebrow">Investigación · '+RESEARCH.n+' personas</span>'
+        + '<h1 class="rs-h1">Lo que reveló la investigación</h1>'
+        + '<p class="rs-lead">'+RESEARCH.n+' personas compartieron cómo gestionan sus gastos compartidos y las dificultades que enfrentan.</p>'
+      + '</header>'
+      + cuerpo
+    + '</div>'
+
+    /* La voz de la gente entre lo que piden y la oportunidad para Popular */
+    + '<section class="rs-voices"><div class="rs-wrap">'
+      + '<h2 class="rs-h2">En sus propias palabras</h2>'
+      + '<p class="rs-note">Algunas respuestas también mostraron qué esperan al gestionar gastos compartidos.</p>'
+      + '<div class="rs-quotes" data-quotes="1">'+citas+'</div>'
+    + '</div></section>'
+
+    + '<section class="rs-close"><div class="rs-wrap">'
+      + '<h2>'+esc(c.t)+'</h2>'
+      + ringHtml(pct(c.n, c.base), 'rs-hero')
+      + '<p>'+esc(c.d)+'</p>'
+      + '<p class="apoyo">'+esc(c.apoyo)+'</p>'
+    + '</div></section>'
+
+    + '<div class="rs-wrap"><div class="rs-foot">'
+      + '<p>Encuesta de '+RESEARCH.n+' respuestas. En las preguntas de selección múltiple cada persona pudo elegir varias opciones.</p>'
+      + '<button class="btn btn-primary btn-md" data-a="closeResearch">Volver al prototipo</button>'
+    + '</div></div>';
+}
+
+const rsReduce = () => typeof window.matchMedia === 'function'
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* El número sube de 0 al valor final con la misma curva que el trazo */
+function rsCountUp(el, hasta){
+  if(!el) return;
+  if(rsReduce() || typeof requestAnimationFrame !== 'function'){ el.textContent = hasta; return; }
+  const t0 = (typeof performance === 'object' && performance.now) ? performance.now() : Date.now();
+  const paso = ahora=>{
+    const k = Math.min((ahora - t0)/RS_DUR, 1);
+    el.textContent = Math.round(hasta * (1 - Math.pow(1-k, 3)));   /* ease-out */
+    if(k < 1) requestAnimationFrame(paso); else el.textContent = hasta;
+  };
+  requestAnimationFrame(paso);
+}
+
+/* Una sola vez por elemento: al terminar queda marcado y ya no se vuelve
+   a observar, así subir y bajar no repite nada. */
+function rsPlay(nodo){
+  if(!nodo || nodo.dataset.done) return;
+  nodo.dataset.done = '1';
+  if(nodo.dataset.ring !== undefined){
+    const pct = Number(nodo.dataset.ring);
+    const val = nodo.querySelector('.val');
+    if(val) val.style.strokeDashoffset = (RS_CIRC * (1 - pct/100)).toFixed(2);
+    rsCountUp(nodo.querySelector('.num span'), pct);
+  } else if(nodo.dataset.quotes !== undefined){
+    /* Las citas solo se descubren: el desvanecido y el desplazamiento
+       los lleva el CSS, escalonados por su transition-delay. */
+    const dichos = nodo.querySelectorAll('[data-quote]');
+    for(let i=0;i<dichos.length;i++) dichos[i].classList.add('on');
+  } else {
+    const barras = nodo.querySelectorAll('[data-bar]');
+    for(let i=0;i<barras.length;i++) barras[i].style.width = barras[i].dataset.bar + '%';
+  }
+}
+
+function rsObserve(raiz){
+  const pend = [].slice.call(raiz.querySelectorAll('[data-ring],[data-bars],[data-quotes]'))
+    .filter(n=>!n.dataset.done);
+  if(!pend.length) return;
+  /* Sin animación (o sin soporte) todo sale con su valor final puesto */
+  if(rsReduce() || typeof IntersectionObserver !== 'function'){ pend.forEach(rsPlay); return; }
+  const io = new IntersectionObserver(entradas=>{
+    entradas.forEach(en=>{
+      if(!en.isIntersecting) return;
+      io.unobserve(en.target);
+      rsPlay(en.target);
+    });
+  }, {root:raiz, threshold:.25});
+  pend.forEach(n=>io.observe(n));
+}
+
+/* Se arma la primera vez y se conserva: al volver, lo ya animado sigue
+   en su valor final y solo se observa lo que aún no se ha visto. */
+function openResearch(){
+  const el = document.getElementById('research');
+  if(!el) return;
+  if(!el.innerHTML) el.innerHTML = researchHtml();
+  el.hidden = false;
+  el.removeAttribute('aria-hidden');
+  if(document.body) document.body.classList.add('rs-open');
+  el.scrollTop = 0;
+  rsObserve(el);
+  const volver = el.querySelector('.rs-back');
+  if(volver && volver.focus) volver.focus();
+}
+
+function closeResearch(){
+  const el = document.getElementById('research');
+  if(!el) return;
+  el.hidden = true;
+  el.setAttribute('aria-hidden','true');
+  if(document.body) document.body.classList.remove('rs-open');
 }
 
 /* ---------- Dashboard ---------- */
@@ -2830,6 +3319,12 @@ document.addEventListener('focusout', e=>{
   }
 });
 
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'Escape') return;
+  const el = document.getElementById('research');
+  if(el && !el.hidden) closeResearch();
+});
+
 document.addEventListener('click', e=>{
   /* Escribir dentro de un campo no dispara la acción de la fila que lo contiene */
   if(e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
@@ -3129,6 +3624,9 @@ document.addEventListener('click', e=>{
     case 'joinQR': state.scan='buscando'; go('scan',{gid:'sim'}); startScan(); break;
     case 'scanNow': scanDetect(); break;
     case 'goInfo': go('info'); break;
+    /* La investigación no toca state ni el enrutador: es una vista aparte */
+    case 'openResearch': openResearch(); break;
+    case 'closeResearch': closeResearch(); break;
     case 'goArchived': go('archived'); break;
     case 'goSimulate': go('simulate'); break;
     case 'simInvite': state.form={}; go('join',{gid:d.gid||'inv'}); break;
